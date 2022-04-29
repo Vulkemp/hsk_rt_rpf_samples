@@ -1,3 +1,5 @@
 sponza_model/
 out/
 .vs/
+downloads/
+build/
