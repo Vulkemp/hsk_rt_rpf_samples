@@ -1,17 +1,4 @@
-#include "importance_sampling_rt.hpp"
-#include <nameof/nameof.hpp>
-
-// std libs
-#include <iostream>
-
-// rtrpf
-#include <spdlog/spdlog.h>
-
-int main(int argv, char** args)
-{
-    ImportanceSamplingRtProject project;
-    return project.Run();
-}
+#include "sponza_sample.hpp"
 
 void ImportanceSamplingRtProject::Init()
 {
