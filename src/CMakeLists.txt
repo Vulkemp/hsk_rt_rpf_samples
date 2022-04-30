@@ -5,11 +5,6 @@ project("hsk_sponza_sample_app")
 MESSAGE("--- << CMAKE of ${PROJECT_NAME} >> --- ")
 MESSAGE(STATUS "CURRENT SOURCE DIR \"${CMAKE_CURRENT_SOURCE_DIR}\"")#
 
-# Compiler flags
-set(BASE_FLAGS "${CMAKE_CXX_FLAGS} -fconcepts-ts")
-set(NONSTRICT_FLAGS ${BASE_FLAGS})
-set(STRICT_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-
 # Enable strict mode for own code
 SET(CMAKE_CXX_FLAGS ${STRICT_FLAGS})
 
@@ -25,6 +20,13 @@ target_link_libraries(
 	${PROJECT_NAME}
 	PUBLIC rtrpf
 )
+
+if (WIN32)
+	target_link_libraries(
+		${PROJECT_NAME}
+		PUBLIC "${CMAKE_SOURCE_DIR}/hsk_rt_rpf/third_party/sdl2/win/x64/SDL2main.lib"
+	)
+endif()
 
 target_include_directories(
 	${PROJECT_NAME}
