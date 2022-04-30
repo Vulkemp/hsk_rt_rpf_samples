@@ -4,10 +4,10 @@
       "name": "CppVsDbg Launch (Windows)",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/sample/Debug/hsk_sponza_sample_app.exe",
+      "program": "${workspaceFolder}/build/src/Debug/hsk_sponza_sample_app.exe",
       "args": [],
       "stopAtEntry": false,
-      "cwd": "${workspaceFolder}",
+      "cwd": "${workspaceFolder}/src",
       "environment": [],
       "console": "externalTerminal"
     }

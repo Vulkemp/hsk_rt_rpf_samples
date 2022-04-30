@@ -6,6 +6,7 @@ project("hsk_sponza_sample")
 include("hsk_rt_rpf/cmakescripts/compilerconfig.cmake")
 
 # Run Locate SDL2 script
+set(SDL2_HINT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/hsk_rt_rpf/third_party")
 include("hsk_rt_rpf/cmakescripts/locatesdl2.cmake")
 
 
