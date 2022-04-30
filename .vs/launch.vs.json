@@ -1,0 +1,13 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "hsk_sponza_sample_app.exe (src\\hsk_sponza_sample_app.exe)",
+      "name": "hsk_sponza_sample_app.exe (src\\hsk_sponza_sample_app.exe)",
+      "currentDir": "${projectDir}/src"
+    }
+  ]
+}
