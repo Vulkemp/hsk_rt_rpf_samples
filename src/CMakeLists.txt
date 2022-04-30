@@ -14,7 +14,6 @@ add_executable(${PROJECT_NAME} ${src})
 
 # find vulkan
 find_package(Vulkan REQUIRED)
-MESSAGE(STATUS "Vulkan inc dir ${Vulkan_INCLUDE_DIRS}")
 
 target_link_libraries(
 	${PROJECT_NAME}
@@ -24,7 +23,7 @@ target_link_libraries(
 if (WIN32)
 	target_link_libraries(
 		${PROJECT_NAME}
-		PUBLIC "${CMAKE_SOURCE_DIR}/hsk_rt_rpf/third_party/sdl2/win/x64/SDL2main.lib"
+		PUBLIC ${SDL2_LIBRARIES}
 	)
 endif()
 
