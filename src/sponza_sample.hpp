@@ -34,14 +34,12 @@ class ImportanceSamplingRtProject : public hsk::DefaultAppBase
 
 
     inline virtual void Render(float delta) override { 
-        // drawFrame();
+         drawFrame();
          }
 
 
     const uint32_t WIDTH  = 800;
     const uint32_t HEIGHT = 600;
-
-    const int MAX_FRAMES_IN_FLIGHT = 2;
 
     struct Vertex
     {
@@ -89,6 +87,7 @@ class ImportanceSamplingRtProject : public hsk::DefaultAppBase
     }
 
   private:
+     hsk::Scene mScene;
     std::vector<VkFramebuffer> swapChainFramebuffers;
 
     VkRenderPass     renderPass;
@@ -109,8 +108,11 @@ class ImportanceSamplingRtProject : public hsk::DefaultAppBase
 
     bool framebufferResized = false;
 
+    int MAX_FRAMES_IN_FLIGHT = 2;
+
     void initVulkan()
     {
+        MAX_FRAMES_IN_FLIGHT = mSwapchainVkb.image_count;
         loadScene();
         createRenderPass();
         createGraphicsPipeline();
@@ -163,10 +165,18 @@ class ImportanceSamplingRtProject : public hsk::DefaultAppBase
     void loadScene()
     {
         // std::string fullFileName = hsk::MakeRelativePath("models/minimal.gltf");
-        std::string fullFileName = hsk::MakeRelativePath("models/glTF-Sample-Models/Sponza/glTF/Sponza.gltf");
-        hsk::Scene  scene(mAllocator, mDevice, mPhysicalDevice, mCommandPoolDefault, mDefaultQueue.Queue);
+        //std::string fullFileName = hsk::MakeRelativePath("sponza_model\\Main\\NewSponza_Main_Blender_glTF.gltf");
+        std::string fullFileName = hsk::MakeRelativePath("sponza_model\\glTF-Sample-Models\\2.0\\Sponza\\glTF\\Sponza.gltf");
 
-        scene.LoadFromFile(fullFileName);
+        // propagate vk variables
+        auto context = mScene.GetVkContext();
+        context->Allocator = mAllocator;
+        context->Device = mDevice;
+        context->PhysicalDevice = mPhysicalDevice;
+        context->TransferCommandPool = mCommandPoolDefault;
+        context->TransferQueue = mDefaultQueue.Queue;
+        
+        mScene.LoadFromFile(fullFileName);
     }
 
     void createRenderPass()
@@ -528,6 +538,8 @@ class ImportanceSamplingRtProject : public hsk::DefaultAppBase
 
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
+        mScene.Draw(commandBuffer);
+
         vkCmdEndRenderPass(commandBuffer);
 
         if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
@@ -577,6 +589,13 @@ class ImportanceSamplingRtProject : public hsk::DefaultAppBase
             throw std::runtime_error("failed to acquire swap chain image!");
         }
 
+        // check if this image returned by the swapchain is already in use for rendering
+       /* if (inFlightFences[imageIndex] != VK_NULL_HANDLE) {
+            vkWaitForFences(mDevice, 1, &inFlightFences[imageIndex], VK_TRUE, UINT64_MAX);
+        }*/
+        // mark as in use for rendering
+        //inFlightFences[imageIndex] = m_fences[m_currentFrame];
+
         vkResetFences(mDevice, 1, &inFlightFences[currentFrame]);
 
         vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
@@ -597,7 +616,7 @@ class ImportanceSamplingRtProject : public hsk::DefaultAppBase
         VkSemaphore signalSemaphores[]  = {renderFinishedSemaphores[currentFrame]};
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores    = signalSemaphores;
-
+        hsk::logger()->info("draw frame index {} image index  {}",  currentFrame, imageIndex);
         if(vkQueueSubmit(mDefaultQueue.Queue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to submit draw command buffer!");
