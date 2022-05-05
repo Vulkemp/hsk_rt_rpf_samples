@@ -103,7 +103,8 @@ class ImportanceSamplingRtProject : public hsk::DefaultAppBase
 
     std::vector<VkSemaphore> imageAvailableSemaphores;
     std::vector<VkSemaphore> renderFinishedSemaphores;
-    std::vector<VkFence>     inFlightFences;
+    std::vector<VkFence> mFences;
+    std::vector<VkFence> mFencesInFlight;
     uint32_t                 currentFrame = 0;
 
     bool framebufferResized = false;
@@ -137,7 +138,7 @@ class ImportanceSamplingRtProject : public hsk::DefaultAppBase
         {
             vkDestroySemaphore(mDevice, renderFinishedSemaphores[i], nullptr);
             vkDestroySemaphore(mDevice, imageAvailableSemaphores[i], nullptr);
-            vkDestroyFence(mDevice, inFlightFences[i], nullptr);
+            vkDestroyFence(mDevice, mFences[i], nullptr);
         }
     }
 
@@ -552,7 +553,8 @@ class ImportanceSamplingRtProject : public hsk::DefaultAppBase
     {
         imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
         renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
-        inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+        mFences.resize(MAX_FRAMES_IN_FLIGHT);
+        mFencesInFlight.resize(MAX_FRAMES_IN_FLIGHT);
 
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -565,7 +567,7 @@ class ImportanceSamplingRtProject : public hsk::DefaultAppBase
         {
             if(vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) != VK_SUCCESS
                || vkCreateSemaphore(mDevice, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) != VK_SUCCESS
-               || vkCreateFence(mDevice, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
+               || vkCreateFence(mDevice, &fenceInfo, nullptr, &mFences[i]) != VK_SUCCESS)
             {
                 throw std::runtime_error("failed to create synchronization objects for a frame!");
             }
@@ -574,7 +576,12 @@ class ImportanceSamplingRtProject : public hsk::DefaultAppBase
 
     void drawFrame()
     {
-        vkWaitForFences(mDevice, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+        // count total frames for debug
+        static int totalFrameCount = 0;
+        totalFrameCount++;
+
+        // wait for the current frame to be finished with rendering
+        vkWaitForFences(mDevice, 1, &mFences[currentFrame], VK_TRUE, UINT64_MAX);
 
         uint32_t imageIndex;
         VkResult result = vkAcquireNextImageKHR(mDevice, mSwapchain, UINT64_MAX, imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
@@ -590,13 +597,12 @@ class ImportanceSamplingRtProject : public hsk::DefaultAppBase
         }
 
         // check if this image returned by the swapchain is already in use for rendering
-       /* if (inFlightFences[imageIndex] != VK_NULL_HANDLE) {
-            vkWaitForFences(mDevice, 1, &inFlightFences[imageIndex], VK_TRUE, UINT64_MAX);
-        }*/
+        // so we wait for the associated fence
+       if (mFencesInFlight[imageIndex] != VK_NULL_HANDLE) {
+            vkWaitForFences(mDevice, 1, &mFencesInFlight[imageIndex], VK_TRUE, UINT64_MAX);
+        }
         // mark as in use for rendering
-        //inFlightFences[imageIndex] = m_fences[m_currentFrame];
-
-        vkResetFences(mDevice, 1, &inFlightFences[currentFrame]);
+        mFencesInFlight[imageIndex] = mFences[currentFrame];
 
         vkResetCommandBuffer(commandBuffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
         recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
@@ -609,15 +615,17 @@ class ImportanceSamplingRtProject : public hsk::DefaultAppBase
         submitInfo.waitSemaphoreCount         = 1;
         submitInfo.pWaitSemaphores            = waitSemaphores;
         submitInfo.pWaitDstStageMask          = waitStages;
-
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers    = &commandBuffers[currentFrame];
 
         VkSemaphore signalSemaphores[]  = {renderFinishedSemaphores[currentFrame]};
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores    = signalSemaphores;
-        hsk::logger()->info("draw frame index {} image index  {}",  currentFrame, imageIndex);
-        if(vkQueueSubmit(mDefaultQueue.Queue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
+
+        // reset fence so it can be reused by queue submit
+        vkResetFences(mDevice, 1, &mFences[currentFrame]);
+        hsk::logger()->info("draw frame index {} image index  {} total frames {} ",  currentFrame, imageIndex, totalFrameCount);
+        if(vkQueueSubmit(mDefaultQueue.Queue, 1, &submitInfo, mFences[currentFrame]) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to submit draw command buffer!");
         }
@@ -631,7 +639,6 @@ class ImportanceSamplingRtProject : public hsk::DefaultAppBase
         VkSwapchainKHR swapChains[] = {mSwapchain};
         presentInfo.swapchainCount  = 1;
         presentInfo.pSwapchains     = swapChains;
-
         presentInfo.pImageIndices = &imageIndex;
 
         result = vkQueuePresentKHR(mPresentQueue.Queue, &presentInfo);
