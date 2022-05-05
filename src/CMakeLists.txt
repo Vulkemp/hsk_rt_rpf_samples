@@ -33,3 +33,5 @@ target_include_directories(
 	PUBLIC "../hsk_rt_rpf/third_party"
 	PUBLIC ${Vulkan_INCLUDE_DIRS}
 )
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/configurepath.hpp.in" "${CMAKE_CURRENT_SOURCE_DIR}/configurepath.cmakegenerated.hpp")

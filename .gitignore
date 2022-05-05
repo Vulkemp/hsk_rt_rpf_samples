@@ -4,3 +4,5 @@ out/
 downloads/
 build/
 logs/
+
+*cmakegenerated*
