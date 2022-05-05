@@ -111,7 +111,7 @@ class ImportanceSamplingRtProject : public hsk::DefaultAppBase
 
     void initVulkan()
     {
-        //loadScene();
+        loadScene();
         createRenderPass();
         createGraphicsPipeline();
         createFramebuffers();
@@ -215,8 +215,8 @@ class ImportanceSamplingRtProject : public hsk::DefaultAppBase
 
     void createGraphicsPipeline()
     {
-        auto vertShaderCode = readFile("shaders/vert.spv");
-        auto fragShaderCode = readFile("shaders/frag.spv");
+        auto vertShaderCode = readFile("shaders/main.vert.spv");
+        auto fragShaderCode = readFile("shaders/main.frag.spv");
 
         VkShaderModule vertShaderModule = createShaderModule(vertShaderCode);
         VkShaderModule fragShaderModule = createShaderModule(fragShaderCode);
