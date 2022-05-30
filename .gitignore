@@ -6,3 +6,6 @@ build/
 logs/
 
 *cmakegenerated*
+
+glTF-Sample-Models/*
+glTF-Sample-Models

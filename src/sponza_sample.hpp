@@ -21,6 +21,7 @@
 #include <hsk_env.hpp>
 #include <hsk_rtrpf.hpp>
 #include <stdint.h>
+#include "stages/hsk_gbuffer.hpp"
 
 class ImportanceSamplingRtProject : public hsk::DefaultAppBase
 {
@@ -32,27 +33,13 @@ protected:
     virtual void Init() override;
     virtual void OnEvent(std::shared_ptr<hsk::Event> event) override;
 
-private:
+    virtual void Cleanup() override;
+
     hsk::Scene mScene;
-    void initVulkan()
-    {
-        loadScene();
-    }
 
-    void loadScene()
-    {
-        // std::string fullFileName = hsk::MakeRelativePath("models/minimal.gltf");
-        std::string fullFileName = hsk::MakeRelativePath("../sponza_model/Main/NewSponza_Main_Blender_glTF.gltf");
-        // std::string fullFileName = hsk::MakeRelativePath("sponza_model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf");
+    void loadScene();
 
-        // propagate vk variables
-        auto context = mScene.GetVkContext();
-        context->Allocator = mAllocator;
-        context->Device = mDevice;
-        context->PhysicalDevice = mPhysicalDevice;
-        context->TransferCommandPool = mCommandPoolDefault;
-        context->TransferQueue = mDefaultQueue.Queue;
+    hsk::GBufferStage mGbufferStage;
 
-        // mScene.LoadFromFile(fullFileName);
-    }
+    void ConfigureStages();
 };
