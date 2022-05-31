@@ -35,10 +35,12 @@ void ImportanceSamplingRtProject::OnEvent(hsk::Event::ptr event)
 
     void ImportanceSamplingRtProject::Cleanup() {
         mScene.Cleanup();
+        mGbufferStage.Destroy();
         DefaultAppBase::Cleanup();
     }
 
     void ImportanceSamplingRtProject::ConfigureStages(){
         mGbufferStage.Init(&mContext, &mScene);
+        // mSwapchainCopySourceImage = &mGbufferStage.mAlbedoAttachment;
     }
 
