@@ -44,3 +44,8 @@ void ImportanceSamplingRtProject::OnEvent(hsk::Event::ptr event)
         // mSwapchainCopySourceImage = &mGbufferStage.mAlbedoAttachment;
     }
 
+    void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo& renderInfo)
+    {
+        mGbufferStage.RecordFrame(renderInfo);
+    }
+
