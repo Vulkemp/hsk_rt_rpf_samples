@@ -17,7 +17,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include <glTF/hsk_glTF.hpp>
+#include <glTF/hsk_gltf.hpp>
 #include <hsk_env.hpp>
 #include <hsk_rtrpf.hpp>
 #include <stdint.h>

@@ -34,6 +34,7 @@ void ImportanceSamplingRtProject::OnEvent(hsk::Event::ptr event)
     }
 
     void ImportanceSamplingRtProject::Cleanup() {
+        vkDeviceWaitIdle(mDevice);
         mScene.Cleanup();
         mGbufferStage.Destroy();
         DefaultAppBase::Cleanup();
@@ -41,7 +42,7 @@ void ImportanceSamplingRtProject::OnEvent(hsk::Event::ptr event)
 
     void ImportanceSamplingRtProject::ConfigureStages(){
         mGbufferStage.Init(&mContext, &mScene);
-        // mSwapchainCopySourceImage = &mGbufferStage.mAlbedoAttachment;
+        mSwapchainCopySourceImage = &mGbufferStage.mAlbedoAttachment;
     }
 
     void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo& renderInfo)
