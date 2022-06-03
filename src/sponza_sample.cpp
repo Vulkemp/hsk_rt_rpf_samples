@@ -7,6 +7,11 @@ void ImportanceSamplingRtProject::Init()
     ConfigureStages();
 }
 
+void ImportanceSamplingRtProject::Update(float delta)
+{
+    mFreeFlightCameraController.Update(delta);
+}
+
 void ImportanceSamplingRtProject::OnEvent(hsk::Event::ptr event)
 {
     auto buttonInput = std::dynamic_pointer_cast<hsk::EventInputBinary>(event);
@@ -19,6 +24,7 @@ void ImportanceSamplingRtProject::OnEvent(hsk::Event::ptr event)
     {
         spdlog::info("Device \"{}\" Axis {} - {}", axisInput->Device()->Name(), axisInput->Axis()->Name(), axisInput->State());
     }
+    mFreeFlightCameraController.OnEvent(event);
 }
 
     void ImportanceSamplingRtProject::loadScene()
@@ -31,6 +37,12 @@ void ImportanceSamplingRtProject::OnEvent(hsk::Event::ptr event)
         mScene.Context(&mContext);
 
         mScene.LoadFromFile(fullFileName);
+
+        if (mScene.GetCameras().size() == 0)
+        {
+            throw hsk::Exception("Scene has no camera attached!");
+        }
+        mFreeFlightCameraController.Init(&mContext, mScene.GetCameras()[0].get(), &mOsManager);
     }
 
     void ImportanceSamplingRtProject::Cleanup() {
