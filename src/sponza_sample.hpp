@@ -37,6 +37,8 @@ protected:
     virtual void OnResized(VkExtent2D size) override;
     virtual void Cleanup() override;
 
+    virtual void OnResized(VkExtent2D size);
+
     hsk::Scene mScene;
 
     void loadScene();
