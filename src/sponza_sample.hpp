@@ -2,8 +2,7 @@
 
 #include <hsk_exception.hpp>
 
-#include <glm/glm.hpp>
-
+#include <hsk_glm.hpp>
 #include <algorithm>
 #include <array>
 #include <cstdint>
@@ -35,7 +34,7 @@ protected:
     virtual void Update(float delta);
 
     virtual void RecordCommandBuffer(hsk::FrameRenderInfo& renderInfo) override;
-
+    virtual void OnResized(VkExtent2D size) override;
     virtual void Cleanup() override;
 
     hsk::Scene mScene;

@@ -30,12 +30,11 @@ void ImportanceSamplingRtProject::OnEvent(hsk::Event::ptr event)
     void ImportanceSamplingRtProject::loadScene()
     {
         // std::string fullFileName = hsk::MakeRelativePath("models/minimal.gltf");
-        std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/Avocado/glTF/Avocado.gltf");
-        // std::string fullFileName = hsk::MakeRelativePath("sponza_model/glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf");
+        //std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/Avocado/glTF/Avocado.gltf");
+         std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf");
 
         // propagate vk variables
         mScene.Context(&mContext);
-
         mScene.LoadFromFile(fullFileName);
 
         if (mScene.GetCameras().size() == 0)
@@ -54,11 +53,17 @@ void ImportanceSamplingRtProject::OnEvent(hsk::Event::ptr event)
 
     void ImportanceSamplingRtProject::ConfigureStages(){
         mGbufferStage.Init(&mContext, &mScene);
-        mSwapchainCopySourceImage = &mGbufferStage.mAlbedoAttachment;
+        mSwapchainCopySourceImage = mGbufferStage.GetColorAttachmentByName("Normal");
     }
 
     void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo& renderInfo)
     {
         mGbufferStage.RecordFrame(renderInfo);
+    }
+
+    void ImportanceSamplingRtProject::OnResized(VkExtent2D size)
+    {
+        mGbufferStage.OnResized(size);
+        mSwapchainCopySourceImage = mGbufferStage.GetColorAttachmentByName("Normal");
     }
 
