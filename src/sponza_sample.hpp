@@ -16,7 +16,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include <glTF/hsk_gltf.hpp>
+#include <scenegraph/hsk_scenegraph.hpp>
 #include <hsk_env.hpp>
 #include <hsk_rtrpf.hpp>
 #include <stdint.h>
@@ -37,9 +37,7 @@ protected:
     virtual void OnResized(VkExtent2D size) override;
     virtual void Cleanup() override;
 
-    virtual void OnResized(VkExtent2D size);
-
-    hsk::Scene mScene;
+    std::unique_ptr<hsk::NScene> mScene;
 
     void loadScene();
 

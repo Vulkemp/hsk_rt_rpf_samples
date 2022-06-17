@@ -1,5 +1,7 @@
 #include "sponza_sample.hpp"
 #include <gltfconvert/hsk_modelconverter.hpp>
+#include <scenegraph/components/hsk_camera.hpp>
+#include <scenegraph/components/hsk_freecameracontroller.hpp>
 
 void ImportanceSamplingRtProject::Init()
 {
@@ -10,7 +12,7 @@ void ImportanceSamplingRtProject::Init()
 
 void ImportanceSamplingRtProject::Update(float delta)
 {
-    mFreeFlightCameraController.Update(delta);
+    // mFreeFlightCameraController.Update(delta);
 }
 
 void ImportanceSamplingRtProject::OnEvent(hsk::Event::ptr event)
@@ -30,59 +32,61 @@ void ImportanceSamplingRtProject::OnEvent(hsk::Event::ptr event)
     {
         spdlog::info("Window resized w {} h {}", windowResized->Current().Width, windowResized->Current().Height);
     }
-    mFreeFlightCameraController.OnEvent(event);
-}
-
-void ImportanceSamplingRtProject::OnResized(VkExtent2D size)
-{
-    mGbufferStage.OnResized(size);
+    mScene->InvokeOnEvent(event);
+    // mFreeFlightCameraController.OnEvent(event);
 }
 
 void ImportanceSamplingRtProject::loadScene()
 {
     // std::string fullFileName = hsk::MakeRelativePath("models/minimal.gltf");
-    // std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/Avocado/glTF/Avocado.gltf");
-    std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf");
+    std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/Avocado/glTF/Avocado.gltf");
+    // std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf");
 
-    // {
-    //     hsk::NScene scene(&mContext);
-    //     hsk::ModelConverter converter(&scene);
-    //     converter.LoadGltfModel(fullFileName);
-    // }
-
-        // propagate vk variables
-        mScene.Context(&mContext);
-        mScene.LoadFromFile(fullFileName);
-
-        if (mScene.GetCameras().size() == 0)
-        {
-            throw hsk::Exception("Scene has no camera attached!");
-        }
-        mFreeFlightCameraController.Init(&mContext, mScene.GetCameras()[0].get(), &mOsManager);
+    mScene = std::make_unique<hsk::NScene>(&mContext);
+    {
+        hsk::ModelConverter converter(mScene.get());
+        converter.LoadGltfModel(fullFileName);
     }
+
+    auto cameraNode = mScene->MakeNode();
+
+    cameraNode->MakeComponent<hsk::NCamera>()->InitDefault();
+    cameraNode->MakeComponent<hsk::FreeCameraController>();
+
+    // propagate vk variables
+    // mScene.Context(&mContext);
+    // mScene.LoadFromFile(fullFileName);
+
+    // if (mScene.GetCameras().size() == 0)
+    // {
+    //     throw hsk::Exception("Scene has no camera attached!");
+    // }
+    // mFreeFlightCameraController.Init(&mContext, mScene.GetCameras()[0].get(), &mOsManager);
+}
 
 void ImportanceSamplingRtProject::Cleanup()
 {
     vkDeviceWaitIdle(mDevice);
-    mScene.Cleanup();
+    mScene->Cleanup();
     mGbufferStage.Destroy();
     DefaultAppBase::Cleanup();
 }
 
 void ImportanceSamplingRtProject::ConfigureStages()
 {
-    mGbufferStage.Init(&mContext, &mScene);
+    mGbufferStage.Init(&mContext, mScene.get());
     mSwapchainCopySourceImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::Albedo);
 }
 
-    void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo& renderInfo)
-    {
-        mGbufferStage.RecordFrame(renderInfo);
-    }
+void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo &renderInfo)
+{
+    mScene->Update(renderInfo);
+    mGbufferStage.RecordFrame(renderInfo);
+}
 
-    void ImportanceSamplingRtProject::OnResized(VkExtent2D size)
-    {
-        mGbufferStage.OnResized(size);
-        mSwapchainCopySourceImage = mGbufferStage.GetColorAttachmentByName("Normal");
-    }
-
+void ImportanceSamplingRtProject::OnResized(VkExtent2D size)
+{
+    mScene->InvokeOnResized(size);
+    mGbufferStage.OnResized(size);
+    mSwapchainCopySourceImage = mGbufferStage.GetColorAttachmentByName("Normal");
+}
