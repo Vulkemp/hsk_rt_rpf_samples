@@ -37,7 +37,7 @@ protected:
     virtual void OnResized(VkExtent2D size) override;
     virtual void Cleanup() override;
 
-    std::unique_ptr<hsk::NScene> mScene;
+    std::unique_ptr<hsk::Scene> mScene;
 
     void loadScene();
 

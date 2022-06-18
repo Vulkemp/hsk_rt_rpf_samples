@@ -35,7 +35,7 @@ void ImportanceSamplingRtProject::loadScene()
     // std::string fullFileName = hsk::MakeRelativePath("../sponza_model/Main/NewSponza_Main_Blender_glTF.gltf");
     std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf");
 
-    mScene = std::make_unique<hsk::NScene>(&mContext);
+    mScene = std::make_unique<hsk::Scene>(&mContext);
     {
         hsk::ModelConverter converter(mScene.get());
         converter.LoadGltfModel(fullFileName);
@@ -43,7 +43,7 @@ void ImportanceSamplingRtProject::loadScene()
 
     auto cameraNode = mScene->MakeNode();
 
-    cameraNode->MakeComponent<hsk::NCamera>()->InitDefault();
+    cameraNode->MakeComponent<hsk::Camera>()->InitDefault();
     cameraNode->MakeComponent<hsk::FreeCameraController>();
 
     // propagate vk variables
