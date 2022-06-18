@@ -5,6 +5,7 @@
 
 void ImportanceSamplingRtProject::Init()
 {
+    hsk::logger()->set_level(spdlog::level::debug);
     mWindow.DisplayMode(hsk::EDisplayMode::WindowedResizable);
     loadScene();
     ConfigureStages();
@@ -34,6 +35,7 @@ void ImportanceSamplingRtProject::loadScene()
     // std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/Avocado/glTF/Avocado.gltf");
     // std::string fullFileName = hsk::MakeRelativePath("../sponza_model/Main/NewSponza_Main_Blender_glTF.gltf");
     std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf");
+    // std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/GearboxAssy/glTF/GearboxAssy.gltf");
 
     mScene = std::make_unique<hsk::Scene>(&mContext);
     {
