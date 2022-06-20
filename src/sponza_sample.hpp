@@ -21,6 +21,7 @@
 #include <hsk_rtrpf.hpp>
 #include <stdint.h>
 #include "stages/hsk_gbuffer.hpp"
+#include "stages/hsk_imguistage.hpp"
 
 class ImportanceSamplingRtProject : public hsk::DefaultAppBase
 {
@@ -36,12 +37,15 @@ protected:
     virtual void RecordCommandBuffer(hsk::FrameRenderInfo& renderInfo) override;
     virtual void OnResized(VkExtent2D size) override;
     virtual void Cleanup() override;
+    
+    void RecordImguiWindow(hsk::FrameRenderInfo& renderInfo);
 
     std::unique_ptr<hsk::Scene> mScene;
 
     void loadScene();
 
     hsk::GBufferStage mGbufferStage;
+    hsk::ImguiStage mImguiStage;
 
     void ConfigureStages();
 };

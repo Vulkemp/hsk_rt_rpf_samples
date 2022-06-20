@@ -5,6 +5,8 @@ downloads/
 build/
 logs/
 
+imgui.ini
+
 *cmakegenerated*
 
 glTF-Sample-Models/*
