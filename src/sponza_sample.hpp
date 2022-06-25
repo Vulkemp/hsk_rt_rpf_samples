@@ -22,30 +22,32 @@
 #include <stdint.h>
 #include "stages/hsk_gbuffer.hpp"
 #include "stages/hsk_imguistage.hpp"
+#include "stages/hsk_imagetoswapchain.hpp"
 
 class ImportanceSamplingRtProject : public hsk::DefaultAppBase
 {
 public:
-    ImportanceSamplingRtProject() = default;
-    ~ImportanceSamplingRtProject() = default;
+	ImportanceSamplingRtProject() = default;
+	~ImportanceSamplingRtProject() = default;
 
 protected:
-    virtual void Init() override;
-    virtual void OnEvent(std::shared_ptr<hsk::Event> event) override;
-    virtual void Update(float delta);
+	virtual void Init() override;
+	virtual void OnEvent(std::shared_ptr<hsk::Event> event) override;
+	virtual void Update(float delta);
 
-    virtual void RecordCommandBuffer(hsk::FrameRenderInfo& renderInfo) override;
-    virtual void OnResized(VkExtent2D size) override;
-    virtual void Cleanup() override;
-    
-    void RecordImguiWindow(hsk::FrameRenderInfo& renderInfo);
+	virtual void RecordCommandBuffer(hsk::FrameRenderInfo& renderInfo) override;
+	virtual void OnResized(VkExtent2D size) override;
+	virtual void Cleanup() override;
 
-    std::unique_ptr<hsk::Scene> mScene;
+	void DrawImgui(hsk::FrameRenderInfo& renderInfo);
 
-    void loadScene();
+	std::unique_ptr<hsk::Scene> mScene;
 
-    hsk::GBufferStage mGbufferStage;
-    hsk::ImguiStage mImguiStage;
+	void loadScene();
 
-    void ConfigureStages();
+	hsk::GBufferStage mGbufferStage;
+	hsk::ImguiStage mImguiStage;
+	hsk::ImageToSwapchainStage mImageToSwapchainStage;
+
+	void ConfigureStages();
 };
