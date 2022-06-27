@@ -23,6 +23,7 @@
 #include "stages/hsk_gbuffer.hpp"
 #include "stages/hsk_imguistage.hpp"
 #include "stages/hsk_imagetoswapchain.hpp"
+#include "stages/hsk_flipimage.hpp"
 
 class ImportanceSamplingRtProject : public hsk::DefaultAppBase
 {
@@ -39,7 +40,7 @@ protected:
 	virtual void OnResized(VkExtent2D size) override;
 	virtual void Cleanup() override;
 
-	void DrawImgui(hsk::FrameRenderInfo& renderInfo);
+	void PrepareImguiWindow();
 
 	std::unique_ptr<hsk::Scene> mScene;
 
@@ -48,6 +49,7 @@ protected:
 	hsk::GBufferStage mGbufferStage;
 	hsk::ImguiStage mImguiStage;
 	hsk::ImageToSwapchainStage mImageToSwapchainStage;
+	hsk::FlipImageStage mFlipImageStage;
 
 	void ConfigureStages();
 };

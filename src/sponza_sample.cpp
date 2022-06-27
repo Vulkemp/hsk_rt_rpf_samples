@@ -37,7 +37,7 @@ void ImportanceSamplingRtProject::loadScene()
     {
         // std::string fullFileName = hsk::MakeRelativePath("models/minimal.gltf");
         // std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/GearboxAssy/glTF/GearboxAssy.gltf");
-        // std::string fullFileName = hsk::MakeRelativePath("../sponza_model/Main/NewSponza_Main_Blender_glTF.gltf");
+        //std::string fullFileName = hsk::MakeRelativePath("../sponza_model/Main/NewSponza_Main_Blender_glTF.gltf");
         // std::string fullFileName = hsk::MakeRelativePath("../sponza_model/PKG_B_Ivy/NewSponza_IvyGrowth_glTF.gltf");
         std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf");
         hsk::ModelConverter converter(mScene.get());
@@ -72,11 +72,12 @@ void ImportanceSamplingRtProject::Cleanup()
     mScene = nullptr;
     mGbufferStage.Destroy();
     mImguiStage.Destroy();
+    mFlipImageStage.Destroy();
 
     DefaultAppBase::Cleanup();
 }
 
-void ImportanceSamplingRtProject::DrawImgui(hsk::FrameRenderInfo& renderInfo)
+void ImportanceSamplingRtProject::PrepareImguiWindow()
 {
     mImguiStage.AddWindowDraw([]() {
 		    ImGui::Begin("window");
@@ -90,11 +91,16 @@ void ImportanceSamplingRtProject::ConfigureStages()
     mGbufferStage.Init(&mContext, mScene.get());
     auto albedoImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::Albedo);
 
-    // init imgui
-    mImguiStage.Init(&mContext, albedoImage);
+    // init flip image stage
+    mFlipImageStage.Init(&mContext, albedoImage);
 
+    // init imgui
+    auto flippedImage = mFlipImageStage.GetColorAttachmentByName(hsk::FlipImageStage::FlipTarget);
+    mImguiStage.Init(&mContext, flippedImage);
+    PrepareImguiWindow();
+ 
     // ínit copy stage
-    mImageToSwapchainStage.Init(&mContext, albedoImage);
+    mImageToSwapchainStage.Init(&mContext, flippedImage);
 }
 
 void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo &renderInfo)
@@ -102,10 +108,14 @@ void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo &rend
     mScene->Update(renderInfo);
     mGbufferStage.RecordFrame(renderInfo);
 
+    // flip opengl coordinate system to vulkan
+    mFlipImageStage.RecordFrame(renderInfo);
 
-
-    DrawImgui(renderInfo);
+    // draw imgui windows
     mImguiStage.RecordFrame(renderInfo);
+
+    // copy final image to swapchain
+    mImageToSwapchainStage.RecordFrame(renderInfo);
 }
 
 void ImportanceSamplingRtProject::OnResized(VkExtent2D size)
@@ -113,5 +123,9 @@ void ImportanceSamplingRtProject::OnResized(VkExtent2D size)
     mScene->InvokeOnResized(size);
     mGbufferStage.OnResized(size);
     auto albedoImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::Albedo);
-    mImguiStage.OnResized(size, albedoImage);
+    mFlipImageStage.OnResized(size, albedoImage);
+
+    auto flippedImage = mFlipImageStage.GetColorAttachmentByName(hsk::FlipImageStage::FlipTarget);
+    mImguiStage.OnResized(size, flippedImage);
+    mImageToSwapchainStage.OnResized(size, flippedImage);
 }
