@@ -28,6 +28,9 @@ void ImportanceSamplingRtProject::OnEvent(hsk::Event::ptr event)
     }
     mScene->InvokeOnEvent(event);
     // mFreeFlightCameraController.OnEvent(event);
+
+    // process events for imgui
+    mImguiStage.ProcessSdlEvent(event->GetRawSdlEvent());
 }
 
 void ImportanceSamplingRtProject::loadScene()
