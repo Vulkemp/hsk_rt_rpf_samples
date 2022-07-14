@@ -24,6 +24,7 @@
 #include "stages/hsk_imguistage.hpp"
 #include "stages/hsk_imagetoswapchain.hpp"
 #include "stages/hsk_flipimage.hpp"
+#include "stages/hsk_raytracingstage.hpp"
 
 class ImportanceSamplingRtProject : public hsk::DefaultAppBase
 {
@@ -50,6 +51,7 @@ protected:
 	hsk::ImguiStage mImguiStage;
 	hsk::ImageToSwapchainStage mImageToSwapchainStage;
 	hsk::FlipImageStage mFlipImageStage;
+	hsk::RaytracingStage mRaytraycingStage;
 
 	void ConfigureStages();
 };

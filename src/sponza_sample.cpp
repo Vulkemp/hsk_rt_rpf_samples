@@ -45,10 +45,12 @@ void ImportanceSamplingRtProject::loadScene()
         std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf");
         hsk::ModelConverter converter(mScene.get());
         converter.LoadGltfModel(fullFileName);
+        mScene->CreateTlas();
     }
     {
         std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/Avocado/glTF/Avocado.gltf");
         hsk::ModelConverter converter(mScene.get());
+        
         // converter.LoadGltfModel(fullFileName);
     }
 
@@ -76,15 +78,16 @@ void ImportanceSamplingRtProject::Cleanup()
     mGbufferStage.Destroy();
     mImguiStage.Destroy();
     mFlipImageStage.Destroy();
+    mRaytraycingStage.Destroy();
 
     DefaultAppBase::Cleanup();
 }
 
 void ImportanceSamplingRtProject::PrepareImguiWindow()
 {
-    mImguiStage.AddWindowDraw([]() {
+    mImguiStage.AddWindowDraw([this]() {
 		    ImGui::Begin("window");
-		    ImGui::Text("FPS: %f", 0);
+		    ImGui::Text("FPS: %f", mFps);
 			ImGui::End();
         });
 }
@@ -93,6 +96,8 @@ void ImportanceSamplingRtProject::ConfigureStages()
 {
     mGbufferStage.Init(&mContext, mScene.get());
     auto albedoImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::Albedo);
+
+    //mRaytraycingStage.Init(&mContext, mScene.get());
 
     // init flip image stage
     mFlipImageStage.Init(&mContext, albedoImage);
