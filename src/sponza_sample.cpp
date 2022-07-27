@@ -97,7 +97,7 @@ void ImportanceSamplingRtProject::ConfigureStages()
     mGbufferStage.Init(&mContext, mScene.get());
     auto albedoImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::Albedo);
 
-    //mRaytraycingStage.Init(&mContext, mScene.get());
+    mRaytraycingStage.Init(&mContext, mScene.get());
 
     // init flip image stage
     mFlipImageStage.Init(&mContext, albedoImage);
@@ -115,6 +115,8 @@ void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo &rend
 {
     mScene->Update(renderInfo);
     mGbufferStage.RecordFrame(renderInfo);
+
+    mRaytraycingStage.RecordFrame(renderInfo);
 
     // flip opengl coordinate system to vulkan
     mFlipImageStage.RecordFrame(renderInfo);
