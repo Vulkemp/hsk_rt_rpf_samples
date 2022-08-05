@@ -34,7 +34,7 @@ public:
 
 protected:
 	virtual void Init() override;
-	virtual void OnEvent(std::shared_ptr<hsk::Event> event) override;
+	virtual void OnEvent(const hsk::Event* event) override;
 	virtual void Update(float delta);
 
 	virtual void RecordCommandBuffer(hsk::FrameRenderInfo& renderInfo) override;

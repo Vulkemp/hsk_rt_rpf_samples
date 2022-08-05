@@ -17,20 +17,20 @@ void ImportanceSamplingRtProject::Update(float delta)
     // mFreeFlightCameraController.Update(delta);
 }
 
-void ImportanceSamplingRtProject::OnEvent(hsk::Event::ptr event)
+void ImportanceSamplingRtProject::OnEvent(const hsk::Event* event)
 {
-    auto buttonInput = std::dynamic_pointer_cast<hsk::EventInputBinary>(event);
-    auto axisInput = std::dynamic_pointer_cast<hsk::EventInputAnalogue>(event);
-    auto windowResized = std::dynamic_pointer_cast<hsk::EventWindowResized>(event);
+    auto buttonInput = dynamic_cast<const hsk::EventInputBinary*>(event);
+    auto axisInput = dynamic_cast<const hsk::EventInputAnalogue*>(event);
+    auto windowResized = dynamic_cast<const hsk::EventWindowResized*>(event);
     if (windowResized)
     {
-        spdlog::info("Window resized w {} h {}", windowResized->Current().Width, windowResized->Current().Height);
+        spdlog::info("Window resized w {} h {}", windowResized->Current.Width, windowResized->Current.Height);
     }
     mScene->InvokeOnEvent(event);
     // mFreeFlightCameraController.OnEvent(event);
 
     // process events for imgui
-    mImguiStage.ProcessSdlEvent(event->GetRawSdlEvent());
+    mImguiStage.ProcessSdlEvent(&(event->RawSdlEventData));
 }
 
 void ImportanceSamplingRtProject::loadScene()
@@ -50,6 +50,7 @@ void ImportanceSamplingRtProject::loadScene()
     {
         std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/Avocado/glTF/Avocado.gltf");
         hsk::ModelConverter converter(mScene.get());
+        // std::string fullFileName = hsk::MakeRelativePath("../sponza_model/PKG_B_Ivy/NewSponza_IvyGrowth_glTF.gltf");
         
         // converter.LoadGltfModel(fullFileName);
     }
@@ -107,7 +108,7 @@ void ImportanceSamplingRtProject::ConfigureStages()
     mImguiStage.Init(&mContext, flippedImage);
     PrepareImguiWindow();
  
-    // ínit copy stage
+    // ï¿½nit copy stage
     mImageToSwapchainStage.Init(&mContext, flippedImage);
 }
 
