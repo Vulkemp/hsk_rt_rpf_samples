@@ -1,5 +1,12 @@
 # Rendering intels sponza scene with the rt rpf framework
 
+## Prerequisites
+
+- **Vulkan SDK 1.2+** Follow install instructions on [https://vulkan.lunarg.com/sdk/home](https://vulkan.lunarg.com/sdk/home)
+- **SDL2 Dev Libraries**
+    - Linux: Install package `libsdl2-dev`
+    - Windows: `hsk_rt_rpf` repository contains headers and windows libraries of SDL 2.0.20. No further setup is required.
+
 ## Cloning
 
 Requires a submodule (`--recursive` clone option or run `submodule init` after cloning)
@@ -28,6 +35,6 @@ hsk_rt_rpf_sponza_sample
 
 ```
 
-## Building
+## Configure and Build
 
-Open the CMakeLists.txt and run.
+That's all set up, now ready to be configured and built.
