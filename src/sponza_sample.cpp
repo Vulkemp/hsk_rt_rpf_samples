@@ -17,11 +17,11 @@ void ImportanceSamplingRtProject::Update(float delta)
     // mFreeFlightCameraController.Update(delta);
 }
 
-void ImportanceSamplingRtProject::OnEvent(const hsk::Event* event)
+void ImportanceSamplingRtProject::OnEvent(const hsk::Event *event)
 {
-    auto buttonInput = dynamic_cast<const hsk::EventInputBinary*>(event);
-    auto axisInput = dynamic_cast<const hsk::EventInputAnalogue*>(event);
-    auto windowResized = dynamic_cast<const hsk::EventWindowResized*>(event);
+    auto buttonInput = dynamic_cast<const hsk::EventInputBinary *>(event);
+    auto axisInput = dynamic_cast<const hsk::EventInputAnalogue *>(event);
+    auto windowResized = dynamic_cast<const hsk::EventWindowResized *>(event);
     if (windowResized)
     {
         spdlog::info("Window resized w {} h {}", windowResized->Current.Width, windowResized->Current.Height);
@@ -39,36 +39,26 @@ void ImportanceSamplingRtProject::loadScene()
     mScene = std::make_unique<hsk::Scene>(&mContext);
     {
         // std::string fullFileName = hsk::MakeRelativePath("models/minimal.gltf");
-        // std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/GearboxAssy/glTF/GearboxAssy.gltf");
-        //std::string fullFileName = hsk::MakeRelativePath("../sponza_model/Main/NewSponza_Main_Blender_glTF.gltf");
-        // std::string fullFileName = hsk::MakeRelativePath("../sponza_model/PKG_B_Ivy/NewSponza_IvyGrowth_glTF.gltf");
+        // std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf");
+        // std::string fullFileName = hsk::MakeRelativePath("../sponza_model/Main/NewSponza_Main_Blender_glTF.gltf");
         std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf");
         hsk::ModelConverter converter(mScene.get());
         converter.LoadGltfModel(fullFileName);
-        mScene->CreateTlas();
     }
+    mScene->CreateTlas();
     {
-        std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/Avocado/glTF/Avocado.gltf");
+        // std::string fullFileName = hsk::MakeRelativePath("../sponza_model/PKG_B_Ivy/NewSponza_IvyGrowth_glTF.gltf");
+        std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/InterpolationTest/glTF/InterpolationTest.gltf");
         hsk::ModelConverter converter(mScene.get());
         // std::string fullFileName = hsk::MakeRelativePath("../sponza_model/PKG_B_Ivy/NewSponza_IvyGrowth_glTF.gltf");
-        
-        // converter.LoadGltfModel(fullFileName);
+
+        converter.LoadGltfModel(fullFileName);
     }
 
     auto cameraNode = mScene->MakeNode();
 
     cameraNode->MakeComponent<hsk::Camera>()->InitDefault();
     cameraNode->MakeComponent<hsk::FreeCameraController>();
-
-    // propagate vk variables
-    // mScene.Context(&mContext);
-    // mScene.LoadFromFile(fullFileName);
-
-    // if (mScene.GetCameras().size() == 0)
-    // {
-    //     throw hsk::Exception("Scene has no camera attached!");
-    // }
-    // mFreeFlightCameraController.Init(&mContext, mScene.GetCameras()[0].get(), &mOsManager);
 }
 
 void ImportanceSamplingRtProject::Cleanup()
@@ -78,7 +68,7 @@ void ImportanceSamplingRtProject::Cleanup()
     mScene = nullptr;
     mGbufferStage.Destroy();
     mImguiStage.Destroy();
-    mFlipImageStage.Destroy();
+    // mFlipImageStage.Destroy();
     mRaytraycingStage.Destroy();
 
     DefaultAppBase::Cleanup();
@@ -86,11 +76,11 @@ void ImportanceSamplingRtProject::Cleanup()
 
 void ImportanceSamplingRtProject::PrepareImguiWindow()
 {
-    mImguiStage.AddWindowDraw([this]() {
+    mImguiStage.AddWindowDraw([this]()
+                              {
 		    ImGui::Begin("window");
 		    ImGui::Text("FPS: %f", mFps);
-			ImGui::End();
-        });
+			ImGui::End(); });
 }
 
 void ImportanceSamplingRtProject::ConfigureStages()
@@ -98,18 +88,18 @@ void ImportanceSamplingRtProject::ConfigureStages()
     mGbufferStage.Init(&mContext, mScene.get());
     auto albedoImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::Albedo);
 
-    mRaytraycingStage.Init(&mContext, mScene.get());
+    // mRaytraycingStage.Init(&mContext, mScene.get());
 
     // init flip image stage
-    mFlipImageStage.Init(&mContext, albedoImage);
+    // mFlipImageStage.Init(&mContext, albedoImage);
 
     // init imgui
-    auto flippedImage = mFlipImageStage.GetColorAttachmentByName(hsk::FlipImageStage::FlipTarget);
-    mImguiStage.Init(&mContext, flippedImage);
+    // auto flippedImage = mFlipImageStage.GetColorAttachmentByName(hsk::FlipImageStage::FlipTarget);
+    mImguiStage.Init(&mContext, albedoImage);
     PrepareImguiWindow();
- 
+
     // �nit copy stage
-    mImageToSwapchainStage.Init(&mContext, flippedImage);
+    mImageToSwapchainStage.Init(&mContext, albedoImage);
 }
 
 void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo &renderInfo)
@@ -117,10 +107,10 @@ void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo &rend
     mScene->Update(renderInfo);
     mGbufferStage.RecordFrame(renderInfo);
 
-    mRaytraycingStage.RecordFrame(renderInfo);
+    // mRaytraycingStage.RecordFrame(renderInfo);
 
     // flip opengl coordinate system to vulkan
-    mFlipImageStage.RecordFrame(renderInfo);
+    // mFlipImageStage.RecordFrame(renderInfo);
 
     // draw imgui windows
     mImguiStage.RecordFrame(renderInfo);
@@ -134,9 +124,9 @@ void ImportanceSamplingRtProject::OnResized(VkExtent2D size)
     mScene->InvokeOnResized(size);
     mGbufferStage.OnResized(size);
     auto albedoImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::Albedo);
-    mFlipImageStage.OnResized(size, albedoImage);
+    // mFlipImageStage.OnResized(size, albedoImage);
+    // auto flippedImage = mFlipImageStage.GetColorAttachmentByName(hsk::FlipImageStage::FlipTarget);
 
-    auto flippedImage = mFlipImageStage.GetColorAttachmentByName(hsk::FlipImageStage::FlipTarget);
-    mImguiStage.OnResized(size, flippedImage);
-    mImageToSwapchainStage.OnResized(size, flippedImage);
+    mImguiStage.OnResized(size, albedoImage);
+    mImageToSwapchainStage.OnResized(size, albedoImage);
 }
