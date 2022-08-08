@@ -6,10 +6,10 @@ import os
 
 # download links
 downloads = {
-    "sponza_base_scene" : "https://cdrdv2.intel.com/v1/dl/getContent/726594",
-    "colorful_curtains" : "https://cdrdv2.intel.com/v1/dl/getContent/726650",
-    "ivy" : "https://cdrdv2.intel.com/v1/dl/getContent/726656",
-    "trees" : "https://cdrdv2.intel.com/v1/dl/getContent/726662",
+    # "sponza_base_scene" : "https://cdrdv2.intel.com/v1/dl/getContent/726594",
+    # "colorful_curtains" : "https://cdrdv2.intel.com/v1/dl/getContent/726650",
+    # "ivy" : "https://cdrdv2.intel.com/v1/dl/getContent/726656",
+    # "trees" : "https://cdrdv2.intel.com/v1/dl/getContent/726662",
     "emissive_candles" : "https://cdrdv2.intel.com/v1/dl/getContent/726676",
 }
 
@@ -49,6 +49,13 @@ import zipfile
 for filename in downloads:
     with zipfile.ZipFile("downloads/"+filename+".zip", 'r') as zip_ref:
         print("Extracting "+filename+" ...")
-        zip_ref.extractall("")
+        zip_ref.extractall("./sponza_model/")
 
+print("Clean download directory \"" + os.path.abspath("downloads") + "\"? y/n")
+choice = input()
+
+import shutil
+
+if choice == "y":
+    shutil.rmtree(os.path.abspath("downloads"))
 print("Python script finished")
