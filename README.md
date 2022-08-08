@@ -24,15 +24,14 @@ The folder structure of the extracted sponza files should be according to this s
 ```
 hsk_rt_rpf_sponza_sample
 │   README.md 
+|   download_sponza.py
 │   ...
 └───sponza_model
-│   │   download_sponza.py
 │   └───Main
 │   └───PKG_A_Curtains
 │   └───PKG_B_Ivy
 │   └───PKG_C_Trees
 │   └───PKG_D_Candles
-
 ```
 
 ## Configure and Build
