@@ -4,6 +4,7 @@
 #include <scenegraph/components/hsk_freecameracontroller.hpp>
 #include <imgui/imgui.h>
 #include <memory/hsk_managedimage.hpp>
+#include <vulkan/vulkan.h>
 
 void ImportanceSamplingRtProject::Init()
 {
@@ -45,7 +46,6 @@ void ImportanceSamplingRtProject::loadScene()
         hsk::ModelConverter converter(mScene.get());
         converter.LoadGltfModel(fullFileName);
     }
-    mScene->CreateTlas();
     {
         // std::string fullFileName = hsk::MakeRelativePath("../sponza_model/PKG_B_Ivy/NewSponza_IvyGrowth_glTF.gltf");
         std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/InterpolationTest/glTF/InterpolationTest.gltf");
@@ -54,6 +54,7 @@ void ImportanceSamplingRtProject::loadScene()
 
         converter.LoadGltfModel(fullFileName);
     }
+    mScene->CreateTlas();
 
     auto cameraNode = mScene->MakeNode();
 
@@ -88,18 +89,19 @@ void ImportanceSamplingRtProject::ConfigureStages()
     mGbufferStage.Init(&mContext, mScene.get());
     auto albedoImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::Albedo);
 
-    // mRaytraycingStage.Init(&mContext, mScene.get());
+    mRaytraycingStage.Init(&mContext, mScene.get());
+    auto rtImage = mRaytraycingStage.GetColorAttachmentByName(hsk::RaytracingStage::RaytracingRenderTargetName);
 
     // init flip image stage
     // mFlipImageStage.Init(&mContext, albedoImage);
 
     // init imgui
     // auto flippedImage = mFlipImageStage.GetColorAttachmentByName(hsk::FlipImageStage::FlipTarget);
-    mImguiStage.Init(&mContext, albedoImage);
+    mImguiStage.Init(&mContext, rtImage);
     PrepareImguiWindow();
 
     // �nit copy stage
-    mImageToSwapchainStage.Init(&mContext, albedoImage);
+    mImageToSwapchainStage.Init(&mContext, rtImage, hsk::ImageToSwapchainStage::PostCopy{.AccessFlags=(VkAccessFlagBits::VK_ACCESS_SHADER_WRITE_BIT),.ImageLayout=(VkImageLayout::VK_IMAGE_LAYOUT_GENERAL), .QueueFamilyIndex=(mContext.QueueGraphics)});
 }
 
 void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo &renderInfo)
@@ -107,7 +109,7 @@ void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo &rend
     mScene->Update(renderInfo);
     mGbufferStage.RecordFrame(renderInfo);
 
-    // mRaytraycingStage.RecordFrame(renderInfo);
+    mRaytraycingStage.RecordFrame(renderInfo);
 
     // flip opengl coordinate system to vulkan
     // mFlipImageStage.RecordFrame(renderInfo);
@@ -126,7 +128,9 @@ void ImportanceSamplingRtProject::OnResized(VkExtent2D size)
     auto albedoImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::Albedo);
     // mFlipImageStage.OnResized(size, albedoImage);
     // auto flippedImage = mFlipImageStage.GetColorAttachmentByName(hsk::FlipImageStage::FlipTarget);
+    mRaytraycingStage.OnResized(size);
+    auto rtImage = mRaytraycingStage.GetColorAttachmentByName(hsk::RaytracingStage::RaytracingRenderTargetName);
 
-    mImguiStage.OnResized(size, albedoImage);
-    mImageToSwapchainStage.OnResized(size, albedoImage);
+    mImguiStage.OnResized(size, rtImage);
+    mImageToSwapchainStage.OnResized(size, rtImage);
 }
