@@ -1,6 +1,7 @@
 #include "sponza_sample.hpp"
 #include <gltfconvert/hsk_modelconverter.hpp>
 #include <scenegraph/components/hsk_camera.hpp>
+#include <scenegraph/globalcomponents/hsk_cameramanager.hpp>
 #include <scenegraph/components/hsk_freecameracontroller.hpp>
 #include <imgui/imgui.h>
 #include <memory/hsk_managedimage.hpp>
@@ -60,6 +61,7 @@ void ImportanceSamplingRtProject::loadScene()
 
     cameraNode->MakeComponent<hsk::Camera>()->InitDefault();
     cameraNode->MakeComponent<hsk::FreeCameraController>();
+    mScene->GetComponent<hsk::CameraManager>()->RefreshCameraList();
 }
 
 void ImportanceSamplingRtProject::Destroy()
@@ -101,7 +103,7 @@ void ImportanceSamplingRtProject::ConfigureStages()
     PrepareImguiWindow();
 
     // �nit copy stage
-    mImageToSwapchainStage.Init(&mContext, rtImage, hsk::ImageToSwapchainStage::PostCopy{.AccessFlags=(VkAccessFlagBits::VK_ACCESS_SHADER_WRITE_BIT),.ImageLayout=(VkImageLayout::VK_IMAGE_LAYOUT_GENERAL), .QueueFamilyIndex=(mContext.QueueGraphics)});
+    mImageToSwapchainStage.Init(&mContext, rtImage, hsk::ImageToSwapchainStage::PostCopy{.AccessFlags = (VkAccessFlagBits::VK_ACCESS_SHADER_WRITE_BIT), .ImageLayout = (VkImageLayout::VK_IMAGE_LAYOUT_GENERAL), .QueueFamilyIndex = (mContext.QueueGraphics)});
 }
 
 void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo &renderInfo)
