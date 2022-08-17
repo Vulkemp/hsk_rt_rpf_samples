@@ -39,7 +39,7 @@ protected:
 
 	virtual void RecordCommandBuffer(hsk::FrameRenderInfo& renderInfo) override;
 	virtual void OnResized(VkExtent2D size) override;
-	virtual void Cleanup() override;
+	virtual void Destroy() override;
 
 	void PrepareImguiWindow();
 

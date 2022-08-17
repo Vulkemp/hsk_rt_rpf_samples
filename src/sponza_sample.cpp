@@ -62,17 +62,17 @@ void ImportanceSamplingRtProject::loadScene()
     cameraNode->MakeComponent<hsk::FreeCameraController>();
 }
 
-void ImportanceSamplingRtProject::Cleanup()
+void ImportanceSamplingRtProject::Destroy()
 {
     vkDeviceWaitIdle(mContext.Device);
-    mScene->Cleanup();
+    mScene->Destroy();
     mScene = nullptr;
     mGbufferStage.Destroy();
     mImguiStage.Destroy();
     // mFlipImageStage.Destroy();
     mRaytraycingStage.Destroy();
 
-    DefaultAppBase::Cleanup();
+    DefaultAppBase::Destroy();
 }
 
 void ImportanceSamplingRtProject::PrepareImguiWindow()
