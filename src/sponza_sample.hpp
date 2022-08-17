@@ -35,7 +35,7 @@ public:
 protected:
 	virtual void Init() override;
 	virtual void OnEvent(const hsk::Event* event) override;
-	virtual void Update(float delta);
+	virtual void Update(float delta) override;
 
 	virtual void RecordCommandBuffer(hsk::FrameRenderInfo& renderInfo) override;
 	virtual void OnResized(VkExtent2D size) override;
@@ -47,10 +47,13 @@ protected:
 
 	void loadScene();
 
+	/// @brief generates a GBuffer (Albedo, Positions, Normal, Motion Vectors, Mesh Instance Id as output images)
 	hsk::GBufferStage mGbufferStage;
+	/// @brief Renders immediate mode GUI
 	hsk::ImguiStage mImguiStage;
+	/// @brief Copies the intermediate rendertarget to the swapchain image
 	hsk::ImageToSwapchainStage mImageToSwapchainStage;
-	hsk::FlipImageStage mFlipImageStage;
+	/// @brief Generates a raytraced image
 	hsk::RaytracingStage mRaytraycingStage;
 
 	void ConfigureStages();

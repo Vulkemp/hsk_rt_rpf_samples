@@ -2,6 +2,7 @@
 #include <gltfconvert/hsk_modelconverter.hpp>
 #include <scenegraph/components/hsk_camera.hpp>
 #include <scenegraph/globalcomponents/hsk_cameramanager.hpp>
+#include <scenegraph/globalcomponents/hsk_tlasmanager.hpp>
 #include <scenegraph/components/hsk_freecameracontroller.hpp>
 #include <imgui/imgui.h>
 #include <memory/hsk_managedimage.hpp>
@@ -16,7 +17,6 @@ void ImportanceSamplingRtProject::Init()
 
 void ImportanceSamplingRtProject::Update(float delta)
 {
-    // mFreeFlightCameraController.Update(delta);
 }
 
 void ImportanceSamplingRtProject::OnEvent(const hsk::Event *event)
@@ -29,7 +29,6 @@ void ImportanceSamplingRtProject::OnEvent(const hsk::Event *event)
         spdlog::info("Window resized w {} h {}", windowResized->Current.Width, windowResized->Current.Height);
     }
     mScene->InvokeOnEvent(event);
-    // mFreeFlightCameraController.OnEvent(event);
 
     // process events for imgui
     mImguiStage.ProcessSdlEvent(&(event->RawSdlEventData));
@@ -55,7 +54,7 @@ void ImportanceSamplingRtProject::loadScene()
 
         converter.LoadGltfModel(fullFileName);
     }
-    mScene->CreateTlas();
+    mScene->MakeComponent<hsk::TlasManager>(&mContext)->CreateOrUpdate();
 
     auto cameraNode = mScene->MakeNode();
 
@@ -71,7 +70,6 @@ void ImportanceSamplingRtProject::Destroy()
     mScene = nullptr;
     mGbufferStage.Destroy();
     mImguiStage.Destroy();
-    // mFlipImageStage.Destroy();
     mRaytraycingStage.Destroy();
 
     DefaultAppBase::Destroy();
@@ -94,11 +92,6 @@ void ImportanceSamplingRtProject::ConfigureStages()
     mRaytraycingStage.Init(&mContext, mScene.get());
     auto rtImage = mRaytraycingStage.GetColorAttachmentByName(hsk::RaytracingStage::RaytracingRenderTargetName);
 
-    // init flip image stage
-    // mFlipImageStage.Init(&mContext, albedoImage);
-
-    // init imgui
-    // auto flippedImage = mFlipImageStage.GetColorAttachmentByName(hsk::FlipImageStage::FlipTarget);
     mImguiStage.Init(&mContext, rtImage);
     PrepareImguiWindow();
 
@@ -113,9 +106,6 @@ void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo &rend
 
     mRaytraycingStage.RecordFrame(renderInfo);
 
-    // flip opengl coordinate system to vulkan
-    // mFlipImageStage.RecordFrame(renderInfo);
-
     // draw imgui windows
     mImguiStage.RecordFrame(renderInfo);
 
@@ -128,8 +118,6 @@ void ImportanceSamplingRtProject::OnResized(VkExtent2D size)
     mScene->InvokeOnResized(size);
     mGbufferStage.OnResized(size);
     auto albedoImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::Albedo);
-    // mFlipImageStage.OnResized(size, albedoImage);
-    // auto flippedImage = mFlipImageStage.GetColorAttachmentByName(hsk::FlipImageStage::FlipTarget);
     mRaytraycingStage.OnResized(size);
     auto rtImage = mRaytraycingStage.GetColorAttachmentByName(hsk::RaytracingStage::RaytracingRenderTargetName);
 
