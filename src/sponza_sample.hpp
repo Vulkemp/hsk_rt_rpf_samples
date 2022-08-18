@@ -15,6 +15,7 @@
 #include <set>
 #include <stdexcept>
 #include <vector>
+#include <unordered_map>
 
 #include <scenegraph/hsk_scenegraph.hpp>
 #include <hsk_env.hpp>
@@ -34,10 +35,10 @@ public:
 
 protected:
 	virtual void Init() override;
-	virtual void OnEvent(const hsk::Event* event) override;
+	virtual void OnEvent(const hsk::Event *event) override;
 	virtual void Update(float delta) override;
 
-	virtual void RecordCommandBuffer(hsk::FrameRenderInfo& renderInfo) override;
+	virtual void RecordCommandBuffer(hsk::FrameRenderInfo &renderInfo) override;
 	virtual void OnResized(VkExtent2D size) override;
 	virtual void Destroy() override;
 
@@ -57,4 +58,11 @@ protected:
 	hsk::RaytracingStage mRaytraycingStage;
 
 	void ConfigureStages();
+
+	std::unordered_map<std::string_view, hsk::ManagedImage*> mOutputs;
+	std::string_view mCurrentOutput = "";
+	bool mOutputChanged = false;
+	
+	void UpdateOutputs();
+	void ApplyOutput();
 };
