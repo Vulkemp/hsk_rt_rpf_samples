@@ -122,11 +122,11 @@ void ImportanceSamplingRtProject::ConfigureStages()
 
     UpdateOutputs();
 
-    mImguiStage.Init(&mContext, normalImage);
+    mImguiStage.Init(&mContext, mOutputs[mCurrentOutput]);
     PrepareImguiWindow();
 
     // �nit copy stage
-    mImageToSwapchainStage.Init(&mContext, normalImage, hsk::ImageToSwapchainStage::PostCopy{.AccessFlags = (VkAccessFlagBits::VK_ACCESS_SHADER_WRITE_BIT), .ImageLayout = (VkImageLayout::VK_IMAGE_LAYOUT_GENERAL), .QueueFamilyIndex = (mContext.QueueGraphics)});
+    mImageToSwapchainStage.Init(&mContext, mOutputs[mCurrentOutput], hsk::ImageToSwapchainStage::PostCopy{.AccessFlags = (VkAccessFlagBits::VK_ACCESS_SHADER_WRITE_BIT), .ImageLayout = (VkImageLayout::VK_IMAGE_LAYOUT_GENERAL), .QueueFamilyIndex = (mContext.QueueGraphics)});
 }
 
 void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo &renderInfo)
