@@ -35,19 +35,22 @@ public:
 
 protected:
 	virtual void Init() override;
-	virtual void OnEvent(const hsk::Event *event) override;
+	virtual void OnEvent(const hsk::Event* event) override;
 	virtual void Update(float delta) override;
 
 	virtual void RecordCommandBuffer(hsk::FrameRenderInfo &renderInfo) override;
 	virtual void QueryResultsAvailable(uint64_t frameIndex) override;
 	virtual void OnResized(VkExtent2D size) override;
 	virtual void Destroy() override;
+	virtual void OnShadersRecompiled(hsk::ShaderCompiler* shaderCompiler) override;
+
 
 	void PrepareImguiWindow();
 
 	std::unique_ptr<hsk::Scene> mScene;
 
 	void loadScene();
+	void LoadEnvironmentMap();
 
 	/// @brief generates a GBuffer (Albedo, Positions, Normal, Motion Vectors, Mesh Instance Id as output images)
 	hsk::GBufferStage mGbufferStage;
@@ -57,6 +60,8 @@ protected:
 	hsk::ImageToSwapchainStage mImageToSwapchainStage;
 	/// @brief Generates a raytraced image
 	hsk::RaytracingStage mRaytraycingStage;
+
+	hsk::ManagedImage mSphericalEnvMap{};
 
 	void ConfigureStages();
 
