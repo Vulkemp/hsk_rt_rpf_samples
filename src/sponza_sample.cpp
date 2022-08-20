@@ -17,7 +17,8 @@ void ImportanceSamplingRtProject::Init()
 
 void ImportanceSamplingRtProject::Update(float delta)
 {
-    if (mOutputChanged){
+    if (mOutputChanged)
+    {
         ApplyOutput();
         mOutputChanged = false;
     }
@@ -108,6 +109,13 @@ void ImportanceSamplingRtProject::PrepareImguiWindow()
                 ImGui::EndCombo();
             }
 
+#ifdef ENABLE_GBUFFER_BENCH
+            if (mDisplayedLog.Timestamps.size() > 0 && ImGui::CollapsingHeader("GBuffer Benchmark"))
+            {
+                mDisplayedLog.PrintImGui();
+            }
+#endif // ENABLE_GBUFFER_BENCH
+
 			ImGui::End(); });
 }
 
@@ -133,6 +141,13 @@ void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo &rend
 {
     mScene->Update(renderInfo);
     mGbufferStage.RecordFrame(renderInfo);
+
+#ifdef ENABLE_GBUFFER_BENCH
+    if (mGbufferStage.GetBenchmark().GetLogs().size() > 0)
+    {
+        mDisplayedLog = mGbufferStage.GetBenchmark().GetLogs().back();
+    }
+#endif // ENABLE_GBUFFER_BENCH
 
     mRaytraycingStage.RecordFrame(renderInfo);
 

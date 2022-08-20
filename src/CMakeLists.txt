@@ -10,6 +10,12 @@ SET(CMAKE_CXX_FLAGS ${STRICT_FLAGS})
 
 # collect sources
 file(GLOB_RECURSE src "*.cpp")
+if (DISABLE_RT_EXTENSIONS)
+    add_compile_definitions(DISABLE_RT_EXTENSIONS)
+endif()
+if (ENABLE_GBUFFER_BENCH)
+    add_compile_definitions(ENABLE_GBUFFER_BENCH)
+endif()
 add_executable(${PROJECT_NAME} ${src})
 
 # find vulkan

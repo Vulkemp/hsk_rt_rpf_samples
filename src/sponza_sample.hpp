@@ -59,10 +59,14 @@ protected:
 
 	void ConfigureStages();
 
-	std::unordered_map<std::string_view, hsk::ManagedImage*> mOutputs;
+	std::unordered_map<std::string_view, hsk::ManagedImage *> mOutputs;
 	std::string_view mCurrentOutput = "";
 	bool mOutputChanged = false;
-	
+
+#ifdef ENABLE_GBUFFER_BENCH
+	hsk::BenchmarkLog mDisplayedLog;
+#endif // ENABLE_GBUFFER_BENCH
+
 	void UpdateOutputs();
 	void ApplyOutput();
 };
