@@ -41,23 +41,20 @@ void ImportanceSamplingRtProject::OnEvent(const hsk::Event *event)
 
 void ImportanceSamplingRtProject::loadScene()
 {
+    std::vector<std::string> scenePaths({
+        // "models/minimal.gltf",
+        // "../glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf",
+        // "../sponza_model/Main/NewSponza_Main_Blender_glTF.gltf",
+        // "../sponza_model/PKG_B_Ivy/NewSponza_IvyGrowth_glTF.gltf",
+        "../glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",
+        "../glTF-Sample-Models/2.0/InterpolationTest/glTF/InterpolationTest.gltf",
+    });
 
     mScene = std::make_unique<hsk::Scene>(&mContext);
+    hsk::ModelConverter converter(mScene.get());
+    for (const auto& path : scenePaths)
     {
-        // std::string fullFileName = hsk::MakeRelativePath("models/minimal.gltf");
-        // std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf");
-        // std::string fullFileName = hsk::MakeRelativePath("../sponza_model/Main/NewSponza_Main_Blender_glTF.gltf");
-        std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf");
-        hsk::ModelConverter converter(mScene.get());
-        converter.LoadGltfModel(fullFileName);
-    }
-    {
-        // std::string fullFileName = hsk::MakeRelativePath("../sponza_model/PKG_B_Ivy/NewSponza_IvyGrowth_glTF.gltf");
-        std::string fullFileName = hsk::MakeRelativePath("../glTF-Sample-Models/2.0/InterpolationTest/glTF/InterpolationTest.gltf");
-        hsk::ModelConverter converter(mScene.get());
-        // std::string fullFileName = hsk::MakeRelativePath("../sponza_model/PKG_B_Ivy/NewSponza_IvyGrowth_glTF.gltf");
-
-        converter.LoadGltfModel(fullFileName);
+        converter.LoadGltfModel(hsk::MakeRelativePath(path));
     }
     mScene->MakeComponent<hsk::TlasManager>(&mContext)->CreateOrUpdate();
 
@@ -66,6 +63,13 @@ void ImportanceSamplingRtProject::loadScene()
     cameraNode->MakeComponent<hsk::Camera>()->InitDefault();
     cameraNode->MakeComponent<hsk::FreeCameraController>();
     mScene->GetComponent<hsk::CameraManager>()->RefreshCameraList();
+
+    for (int32_t i = 0; i < scenePaths.size(); i++)
+    {
+        const auto& path = scenePaths[i];
+        const auto& log = converter.GetBenchmark().GetLogs()[i];
+        hsk::logger()->info("Model Load \"{}\":\n{}", path, log.PrintPretty());
+    }
 }
 
 void ImportanceSamplingRtProject::Destroy()
