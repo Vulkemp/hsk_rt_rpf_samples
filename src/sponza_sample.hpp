@@ -39,6 +39,7 @@ protected:
 	virtual void Update(float delta) override;
 
 	virtual void RecordCommandBuffer(hsk::FrameRenderInfo &renderInfo) override;
+	virtual void QueryResultsAvailable(uint64_t frameIndex) override;
 	virtual void OnResized(VkExtent2D size) override;
 	virtual void Destroy() override;
 

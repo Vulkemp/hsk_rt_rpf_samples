@@ -146,13 +146,6 @@ void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo &rend
     mScene->Update(renderInfo);
     mGbufferStage.RecordFrame(renderInfo);
 
-#ifdef ENABLE_GBUFFER_BENCH
-    if (mGbufferStage.GetBenchmark().GetLogs().size() > 0)
-    {
-        mDisplayedLog = mGbufferStage.GetBenchmark().GetLogs().back();
-    }
-#endif // ENABLE_GBUFFER_BENCH
-
     mRaytraycingStage.RecordFrame(renderInfo);
 
     // draw imgui windows
@@ -160,6 +153,14 @@ void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo &rend
 
     // copy final image to swapchain
     mImageToSwapchainStage.RecordFrame(renderInfo);
+}
+
+void ImportanceSamplingRtProject::QueryResultsAvailable(uint64_t frameIndex)
+{
+#ifdef ENABLE_GBUFFER_BENCH
+    mGbufferStage.GetBenchmark().LogQueryResults(frameIndex);
+    mDisplayedLog = mGbufferStage.GetBenchmark().GetLogs().back();
+#endif // ENABLE_GBUFFER_BENCH
 }
 
 void ImportanceSamplingRtProject::OnResized(VkExtent2D size)
