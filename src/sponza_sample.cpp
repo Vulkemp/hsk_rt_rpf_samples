@@ -81,7 +81,7 @@ void ImportanceSamplingRtProject::LoadEnvironmentMap()
 	constexpr VkFormat hdrVkFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
 	hsk::ImageLoader<hdrVkFormat> imageLoader;
 	// env maps at https://polyhaven.com/a/alps_field
-	std::string pathToEnvMap = std::string(hsk::CurrentWorkingDirectory()) + "/../data/textures/envmap.hdr";
+	std::string pathToEnvMap = std::string(hsk::CurrentWorkingDirectory()) + "/../data/textures/envmap.exr";
 	if (!imageLoader.Init(pathToEnvMap))
 	{
 		hsk::logger()->warn("Loading env map failed \"{}\"", pathToEnvMap);
@@ -169,7 +169,7 @@ void ImportanceSamplingRtProject::ConfigureStages()
 	auto albedoImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::Albedo);
 	auto normalImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::WorldspaceNormal);
 
-	mRaytraycingStage.Init(&mContext, mScene.get());
+	mRaytraycingStage.Init(&mContext, mScene.get(), &mSphericalEnvMap, hsk::RaytracingStageShaderconfig::Basic());
 	auto rtImage = mRaytraycingStage.GetColorAttachmentByName(hsk::RaytracingStage::RaytracingRenderTargetName);
 
 	UpdateOutputs();
