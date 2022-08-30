@@ -8,30 +8,32 @@
 #include <memory/hsk_managedimage.hpp>
 #include <vulkan/vulkan.h>
 #include <utility/hsk_imageloader.hpp>
+#include <bench/hsk_hostbenchmark.hpp>
 
 void ImportanceSamplingRtProject::Init()
 {
 	hsk::logger()->set_level(spdlog::level::debug);
 	LoadEnvironmentMap();
+	GenerateNoiseSource();
 	loadScene();
 	ConfigureStages();
 }
 
 void ImportanceSamplingRtProject::Update(float delta)
 {
-    if (mOutputChanged)
-    {
-        ApplyOutput();
-        mOutputChanged = false;
-    }
+	if (mOutputChanged)
+	{
+		ApplyOutput();
+		mOutputChanged = false;
+	}
 }
 
-void ImportanceSamplingRtProject::OnEvent(const hsk::Event* event)
+void ImportanceSamplingRtProject::OnEvent(const hsk::Event *event)
 {
 	DefaultAppBase::OnEvent(event);
-	auto buttonInput = dynamic_cast<const hsk::EventInputBinary*>(event);
-	auto axisInput = dynamic_cast<const hsk::EventInputAnalogue*>(event);
-	auto windowResized = dynamic_cast<const hsk::EventWindowResized*>(event);
+	auto buttonInput = dynamic_cast<const hsk::EventInputBinary *>(event);
+	auto axisInput = dynamic_cast<const hsk::EventInputAnalogue *>(event);
+	auto windowResized = dynamic_cast<const hsk::EventWindowResized *>(event);
 	if (windowResized)
 	{
 		spdlog::info("Window resized w {} h {}", windowResized->Current.Width, windowResized->Current.Height);
@@ -44,35 +46,35 @@ void ImportanceSamplingRtProject::OnEvent(const hsk::Event* event)
 
 void ImportanceSamplingRtProject::loadScene()
 {
-    std::vector<std::string> scenePaths({
-        // "models/minimal.gltf",
-        // "../glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf",
-        // "../sponza_model/Main/NewSponza_Main_Blender_glTF.gltf",
-        // "../sponza_model/PKG_B_Ivy/NewSponza_IvyGrowth_glTF.gltf",
-        "../glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",
-        "../glTF-Sample-Models/2.0/InterpolationTest/glTF/InterpolationTest.gltf",
-    });
+	std::vector<std::string> scenePaths({
+		// "models/minimal.gltf",
+		// "../glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf",
+		// "../sponza_model/Main/NewSponza_Main_Blender_glTF.gltf",
+		// "../sponza_model/PKG_B_Ivy/NewSponza_IvyGrowth_glTF.gltf",
+		"../glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",
+		"../glTF-Sample-Models/2.0/InterpolationTest/glTF/InterpolationTest.gltf",
+	});
 
-    mScene = std::make_unique<hsk::Scene>(&mContext);
-    hsk::ModelConverter converter(mScene.get());
-    for (const auto& path : scenePaths)
-    {
-        converter.LoadGltfModel(hsk::MakeRelativePath(path));
-    }
-    mScene->MakeComponent<hsk::TlasManager>(&mContext)->CreateOrUpdate();
+	mScene = std::make_unique<hsk::Scene>(&mContext);
+	hsk::ModelConverter converter(mScene.get());
+	for (const auto &path : scenePaths)
+	{
+		converter.LoadGltfModel(hsk::MakeRelativePath(path));
+	}
+	mScene->MakeComponent<hsk::TlasManager>(&mContext)->CreateOrUpdate();
 
 	auto cameraNode = mScene->MakeNode();
 
-    cameraNode->MakeComponent<hsk::Camera>()->InitDefault();
-    cameraNode->MakeComponent<hsk::FreeCameraController>();
-    mScene->GetComponent<hsk::CameraManager>()->RefreshCameraList();
+	cameraNode->MakeComponent<hsk::Camera>()->InitDefault();
+	cameraNode->MakeComponent<hsk::FreeCameraController>();
+	mScene->GetComponent<hsk::CameraManager>()->RefreshCameraList();
 
-    for (int32_t i = 0; i < scenePaths.size(); i++)
-    {
-        const auto& path = scenePaths[i];
-        const auto& log = converter.GetBenchmark().GetLogs()[i];
-        hsk::logger()->info("Model Load \"{}\":\n{}", path, log.PrintPretty());
-    }
+	for (int32_t i = 0; i < scenePaths.size(); i++)
+	{
+		const auto &path = scenePaths[i];
+		const auto &log = converter.GetBenchmark().GetLogs()[i];
+		hsk::logger()->info("Model Load \"{}\":\n{}", path, log.PrintPretty());
+	}
 }
 
 void ImportanceSamplingRtProject::LoadEnvironmentMap()
@@ -105,9 +107,19 @@ void ImportanceSamplingRtProject::LoadEnvironmentMap()
 	imageLoader.Destroy();
 }
 
+void ImportanceSamplingRtProject::GenerateNoiseSource()
+{
+	hsk::HostBenchmark bench;
+	bench.Begin();
+	mNoiseSource.Create(&mContext);
+	bench.End();
+	hsk::logger()->info("Create Noise Tex \n{}", bench.GetLogs().front().PrintPretty());
+}
+
 void ImportanceSamplingRtProject::Destroy()
 {
 	vkDeviceWaitIdle(mContext.Device);
+	mNoiseSource.Destroy();
 	mScene->Destroy();
 	mScene = nullptr;
 	mGbufferStage.Destroy();
@@ -118,7 +130,7 @@ void ImportanceSamplingRtProject::Destroy()
 	DefaultAppBase::Destroy();
 }
 
-void ImportanceSamplingRtProject::OnShadersRecompiled(hsk::ShaderCompiler* shaderCompiler)
+void ImportanceSamplingRtProject::OnShadersRecompiled(hsk::ShaderCompiler *shaderCompiler)
 {
 	mGbufferStage.OnShadersRecompiled(shaderCompiler);
 	mRaytraycingStage.OnShadersRecompiled(shaderCompiler);
@@ -127,7 +139,7 @@ void ImportanceSamplingRtProject::OnShadersRecompiled(hsk::ShaderCompiler* shade
 void ImportanceSamplingRtProject::PrepareImguiWindow()
 {
 	mImguiStage.AddWindowDraw([this]()
-		{
+							  {
 			ImGui::Begin("window");
 			ImGui::Text("FPS: %f", mFps);
 
@@ -169,7 +181,7 @@ void ImportanceSamplingRtProject::ConfigureStages()
 	auto albedoImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::Albedo);
 	auto normalImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::WorldspaceNormal);
 
-	mRaytraycingStage.Init(&mContext, mScene.get(), &mSphericalEnvMap, hsk::RaytracingStageShaderconfig::Basic());
+	mRaytraycingStage.Init(&mContext, mScene.get(), &mSphericalEnvMap, &mNoiseSource.GetImage(), hsk::RaytracingStageShaderconfig::Basic());
 	auto rtImage = mRaytraycingStage.GetColorAttachmentByName(hsk::RaytracingStage::RaytracingRenderTargetName);
 
 	UpdateOutputs();
@@ -178,10 +190,10 @@ void ImportanceSamplingRtProject::ConfigureStages()
 	PrepareImguiWindow();
 
 	// �nit copy stage
-	mImageToSwapchainStage.Init(&mContext, mOutputs[mCurrentOutput], hsk::ImageToSwapchainStage::PostCopy{ .AccessFlags = (VkAccessFlagBits::VK_ACCESS_SHADER_WRITE_BIT), .ImageLayout = (VkImageLayout::VK_IMAGE_LAYOUT_GENERAL), .QueueFamilyIndex = (mContext.QueueGraphics) });
+	mImageToSwapchainStage.Init(&mContext, mOutputs[mCurrentOutput], hsk::ImageToSwapchainStage::PostCopy{.AccessFlags = (VkAccessFlagBits::VK_ACCESS_SHADER_WRITE_BIT), .ImageLayout = (VkImageLayout::VK_IMAGE_LAYOUT_GENERAL), .QueueFamilyIndex = (mContext.QueueGraphics)});
 }
 
-void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo& renderInfo)
+void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo &renderInfo)
 {
 	mScene->Update(renderInfo);
 	mGbufferStage.RecordFrame(renderInfo);
@@ -198,8 +210,8 @@ void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo& rend
 void ImportanceSamplingRtProject::QueryResultsAvailable(uint64_t frameIndex)
 {
 #ifdef ENABLE_GBUFFER_BENCH
-    mGbufferStage.GetBenchmark().LogQueryResults(frameIndex);
-    mDisplayedLog = mGbufferStage.GetBenchmark().GetLogs().back();
+	mGbufferStage.GetBenchmark().LogQueryResults(frameIndex);
+	mDisplayedLog = mGbufferStage.GetBenchmark().GetLogs().back();
 #endif // ENABLE_GBUFFER_BENCH
 }
 
@@ -218,7 +230,7 @@ void ImportanceSamplingRtProject::OnResized(VkExtent2D size)
 	mImageToSwapchainStage.OnResized(size, mOutputs[mCurrentOutput]);
 }
 
-void lUpdateOutput(std::unordered_map<std::string_view, hsk::ManagedImage*>& map, hsk::RenderStage& stage, const std::string_view name)
+void lUpdateOutput(std::unordered_map<std::string_view, hsk::ManagedImage *> &map, hsk::RenderStage &stage, const std::string_view name)
 {
 	map[name] = stage.GetColorAttachmentByName(name);
 }

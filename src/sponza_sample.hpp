@@ -26,6 +26,7 @@
 #include "stages/hsk_imagetoswapchain.hpp"
 #include "stages/hsk_flipimage.hpp"
 #include "stages/hsk_raytracingstage.hpp"
+#include <utility/hsk_noisesource.hpp>
 
 class ImportanceSamplingRtProject : public hsk::DefaultAppBase
 {
@@ -51,6 +52,7 @@ protected:
 
 	void loadScene();
 	void LoadEnvironmentMap();
+	void GenerateNoiseSource();
 
 	/// @brief generates a GBuffer (Albedo, Positions, Normal, Motion Vectors, Mesh Instance Id as output images)
 	hsk::GBufferStage mGbufferStage;
@@ -62,6 +64,8 @@ protected:
 	hsk::RaytracingStage mRaytraycingStage;
 
 	hsk::ManagedImage mSphericalEnvMap{};
+
+	hsk::NoiseSource mNoiseSource;
 
 	void ConfigureStages();
 
