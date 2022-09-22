@@ -21,6 +21,7 @@ void ImportanceSamplingRtProject::Init()
 
 void ImportanceSamplingRtProject::Update(float delta)
 {
+	DefaultAppBase::Update(delta);
 	if (mOutputChanged)
 	{
 		ApplyOutput();
