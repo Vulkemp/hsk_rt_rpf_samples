@@ -27,6 +27,7 @@
 #include "stages/hsk_flipimage.hpp"
 #include "stages/hsk_raytracingstage.hpp"
 #include <utility/hsk_noisesource.hpp>
+#include "customrtstage.hpp"
 
 class ImportanceSamplingRtProject : public hsk::DefaultAppBase
 {
@@ -61,7 +62,7 @@ protected:
 	/// @brief Copies the intermediate rendertarget to the swapchain image
 	hsk::ImageToSwapchainStage mImageToSwapchainStage;
 	/// @brief Generates a raytraced image
-	hsk::RaytracingStage mRaytraycingStage;
+	hsk::CustomRtStage mRaytraycingStage;
 
 	hsk::ManagedImage mSphericalEnvMap{};
 
