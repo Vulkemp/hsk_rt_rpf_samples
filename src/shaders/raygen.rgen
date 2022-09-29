@@ -48,7 +48,7 @@ void main()
 	}
 	ChildPayload.Seed = left + right;
 
-    traceRayEXT(MainTlas, gl_RayFlagsOpaqueEXT, 0xff, 0, 0, 0, origin.xyz, tmin, direction.xyz, tmax, 0);
+    traceRayEXT(MainTlas, 0, 0xff, 0, 0, 0, origin.xyz, tmin, direction.xyz, tmax, 0);
 
 	imageStore(ImageOutput, ivec2(gl_LaunchIDEXT.xy), vec4(ChildPayload.Radiance, 1.0));
 }

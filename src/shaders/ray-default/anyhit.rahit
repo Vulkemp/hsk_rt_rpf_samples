@@ -48,9 +48,9 @@ void main()
 
 	// get material 
 	MaterialBufferObject material = GetMaterialOrFallback(geometa.MaterialIndex);
-	MaterialProbe probe = ProbeMaterial(material, uv);
+	bool isOpaque = ProbeAlphaOpacity(material, uv);
 
-    if (probe.BaseColor.a == 0.f)
+    if (!isOpaque)
     {
         ignoreIntersectionEXT;
     }

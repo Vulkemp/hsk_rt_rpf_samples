@@ -73,7 +73,7 @@ void main()
 		ChildPayload.Attenuation = 0.f;
 		traceRayEXT(
 			MainTlas,				// acceleration structure
-			gl_RayFlagsOpaqueEXT,	// rayFlags
+			0,						// rayFlags
 			0xFF,					// cullMask
 			0,						// sbtRecordOffset
 			0,						// sbtRecordStride
