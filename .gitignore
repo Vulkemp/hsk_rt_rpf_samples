@@ -4,6 +4,7 @@ out/
 downloads/
 build/
 logs/
+*.spv
 
 imgui.ini
 
