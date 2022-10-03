@@ -25,7 +25,13 @@ hitAttributeEXT vec2 attribs; // Barycentric coordinates
 
 void main()
 {
-	if (ReturnPayload.Attenuation <= 0.001f)
+	// Get geometry meta info
+	GeometryMeta geometa = GetGeometryMeta(uint(gl_InstanceCustomIndexEXT), uint(gl_GeometryIndexEXT));
+
+	// get material 
+	MaterialBufferObject material = GetMaterialOrFallback(geometa.MaterialIndex);
+
+	if ((material.Flags & MATERIALFLAGBIT_FULLYOPAQUE) > 0)
 	{
 		return;
 	}
@@ -33,9 +39,6 @@ void main()
 	// Calculate barycentric coords from hitAttribute values
 	const vec3 barycentricCoords = vec3(1.0f - attribs.x - attribs.y, attribs.x, attribs.y);
 	
-	// Get geometry meta info
-	GeometryMeta geometa = GetGeometryMeta(uint(gl_InstanceCustomIndexEXT), uint(gl_GeometryIndexEXT));
-
 	// get primitive indices
 	const uvec3 indices = GetIndices(geometa, uint(gl_PrimitiveID));
 
@@ -46,8 +49,6 @@ void main()
 	// calculate uv
     const vec2 uv = v0.Uv * barycentricCoords.x + v1.Uv * barycentricCoords.y + v2.Uv * barycentricCoords.z;
 
-	// get material 
-	MaterialBufferObject material = GetMaterialOrFallback(geometa.MaterialIndex);
 	bool isOpaque = ProbeAlphaOpacity(material, uv);
 
     if (!isOpaque)

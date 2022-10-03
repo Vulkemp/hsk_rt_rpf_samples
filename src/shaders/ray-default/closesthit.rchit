@@ -25,11 +25,6 @@ hitAttributeEXT vec2 attribs; // Barycentric coordinates
 
 void main()
 {
-	if (ReturnPayload.Attenuation <= 0.001f)
-	{
-		return;
-	}
-
 	// Calculate barycentric coords from hitAttribute values
 	const vec3 barycentricCoords = vec3(1.0f - attribs.x - attribs.y, attribs.x, attribs.y);
 	
@@ -73,7 +68,7 @@ void main()
 		ChildPayload.Attenuation = 0.f;
 		traceRayEXT(
 			MainTlas,				// acceleration structure
-			0,						// rayFlags
+			gl_RayFlagsSkipClosestHitShaderEXT,						// rayFlags
 			0xFF,					// cullMask
 			0,						// sbtRecordOffset
 			0,						// sbtRecordStride
