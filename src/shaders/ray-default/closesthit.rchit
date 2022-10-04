@@ -12,7 +12,6 @@
 #include "../../../hsk_rt_rpf/src/shaders/rt_common/geometrymetabuffer.glsl" // GeometryMeta information
 #include "../../../hsk_rt_rpf/src/shaders/rt_common/geobuffers.glsl" // Vertex and index buffer aswell as accessor methods
 #include "../../../hsk_rt_rpf/src/shaders/common/normaltbn.glsl" // Normal calculation in tangent space
-#include "../../../hsk_rt_rpf/src/shaders/pbr/colorspace.glsl"
 #include "../../../hsk_rt_rpf/src/shaders/pbr/specularbrdf.glsl"
 
 // Declare hitpayloads
@@ -80,7 +79,7 @@ void main()
 			0			// payload (location = 0) prd
 		);
 		ReturnPayload.Radiance += ChildPayload.Radiance;
-		ReturnPayload.Radiance *= DecodeGamma(probe.BaseColor.xyz);
+		ReturnPayload.Radiance *= probe.BaseColor.xyz;
 	}
 
 	// ReturnPayload.Radiance = RandomVec3(ReturnPayload.Seed);
