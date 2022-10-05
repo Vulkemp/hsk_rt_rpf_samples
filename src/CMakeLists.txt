@@ -24,6 +24,7 @@ find_package(Vulkan REQUIRED)
 target_link_libraries(
 	${PROJECT_NAME}
 	PUBLIC rtrpf
+	PUBLIC foray-denoiser-optix
 )
 
 if (WIN32)
@@ -37,6 +38,7 @@ target_include_directories(
 	${PROJECT_NAME}
 	PUBLIC "../hsk_rt_rpf/src"
 	PUBLIC "../hsk_rt_rpf/third_party"
+	PUBLIC "../foray-denoiser-optix/src"
 	PUBLIC ${Vulkan_INCLUDE_DIRS}
 )
 

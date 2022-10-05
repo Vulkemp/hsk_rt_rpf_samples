@@ -12,4 +12,5 @@ include("hsk_rt_rpf/cmakescripts/locatesdl2.cmake")
 
 # Add subdirectories
 add_subdirectory("hsk_rt_rpf")
+add_subdirectory("foray-denoiser-optix")
 add_subdirectory("src")

@@ -28,6 +28,7 @@
 #include "stages/hsk_raytracingstage.hpp"
 #include <utility/hsk_noisesource.hpp>
 #include "customrtstage.hpp"
+#include <foray_optix.hpp>
 
 class ImportanceSamplingRtProject : public hsk::DefaultAppBase
 {
@@ -67,6 +68,8 @@ protected:
 	hsk::ManagedImage mSphericalEnvMap{};
 
 	hsk::NoiseSource mNoiseSource;
+
+	foray::optix::OptiXDenoiserStage mDenoiser;
 
 	void ConfigureStages();
 
