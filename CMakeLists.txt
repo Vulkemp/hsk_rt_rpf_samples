@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.18)
 
 project("hsk_sponza_sample")
 
+enable_language(CXX)
+enable_language(CUDA)
+set(CMAKE_CUDA_STANDARD 20)
+
 # Include Compiler Config (sets c++ 20 and compiler flags)
 include("hsk_rt_rpf/cmakescripts/compilerconfig.cmake")
 

@@ -17,6 +17,8 @@ if (ENABLE_GBUFFER_BENCH)
     add_compile_definitions(ENABLE_GBUFFER_BENCH)
 endif()
 add_executable(${PROJECT_NAME} ${src})
+set_target_properties(${PROJECT_NAME}
+                       PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 # find vulkan
 find_package(Vulkan REQUIRED)
