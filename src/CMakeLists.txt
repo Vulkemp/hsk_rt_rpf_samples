@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.18)
 
-project("hsk_sponza_sample_app")
+project("foray-intel-sponza-app")
 
 MESSAGE("--- << CMAKE of ${PROJECT_NAME} >> --- ")
 MESSAGE(STATUS "CURRENT SOURCE DIR \"${CMAKE_CURRENT_SOURCE_DIR}\"")#
@@ -23,7 +23,7 @@ find_package(Vulkan REQUIRED)
 
 target_link_libraries(
 	${PROJECT_NAME}
-	PUBLIC rtrpf
+	PUBLIC foray
 )
 
 if (WIN32)
@@ -35,8 +35,8 @@ endif()
 
 target_include_directories(
 	${PROJECT_NAME}
-	PUBLIC "../hsk_rt_rpf/src"
-	PUBLIC "../hsk_rt_rpf/third_party"
+	PUBLIC "../foray/src"
+	PUBLIC "../foray/third_party"
 	PUBLIC ${Vulkan_INCLUDE_DIRS}
 )
 
