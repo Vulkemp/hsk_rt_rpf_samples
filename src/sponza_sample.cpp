@@ -131,10 +131,10 @@ void ImportanceSamplingRtProject::Destroy()
 	DefaultAppBase::Destroy();
 }
 
-void ImportanceSamplingRtProject::OnShadersRecompiled(foray::base::ShaderCompiler *shaderCompiler)
+void ImportanceSamplingRtProject::OnShadersRecompiled()
 {
-	mGbufferStage.OnShadersRecompiled(shaderCompiler);
-	mRaytraycingStage.OnShadersRecompiled(shaderCompiler);
+	mGbufferStage.OnShadersRecompiled();
+	mRaytraycingStage.OnShadersRecompiled();
 }
 
 void ImportanceSamplingRtProject::PrepareImguiWindow()

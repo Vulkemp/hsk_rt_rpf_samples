@@ -81,6 +81,4 @@ void main()
 		ReturnPayload.Radiance += ChildPayload.Radiance;
 		ReturnPayload.Radiance *= probe.BaseColor.xyz;
 	}
-
-	// ReturnPayload.Radiance = RandomVec3(ReturnPayload.Seed);
 }

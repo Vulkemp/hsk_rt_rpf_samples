@@ -1,4 +1,5 @@
 #include "customrtstage.hpp"
+#include <core/foray_shadermanager.hpp>
 
 void CustomRtStage::Init(const foray::core::VkContext *context, foray::scene::Scene *scene, foray::core::ManagedImage *envmap, foray::core::ManagedImage *noiseSource)
 {
@@ -39,9 +40,10 @@ void CustomRtStage::CreateRaytraycingPipeline()
     RaytracingStage::CreateRaytraycingPipeline();
 }
 
-void CustomRtStage::OnShadersRecompiled(foray::base::ShaderCompiler *shaderCompiler)
+void CustomRtStage::OnShadersRecompiled()
 {
-    bool rebuild = shaderCompiler->HasShaderBeenRecompiled(mRaygen.Path) || shaderCompiler->HasShaderBeenRecompiled(mDefault_AnyHit.Path) || shaderCompiler->HasShaderBeenRecompiled(mDefault_ClosestHit.Path) || shaderCompiler->HasShaderBeenRecompiled(mDefault_Miss.Path);
+    foray::core::ShaderManager& shaderCompiler = foray::core::ShaderManager::Instance();
+    bool rebuild = shaderCompiler.HasShaderBeenRecompiled(mRaygen.Path) || shaderCompiler.HasShaderBeenRecompiled(mDefault_AnyHit.Path) || shaderCompiler.HasShaderBeenRecompiled(mDefault_ClosestHit.Path) || shaderCompiler.HasShaderBeenRecompiled(mDefault_Miss.Path);
     if (rebuild)
     {
         ReloadShaders();

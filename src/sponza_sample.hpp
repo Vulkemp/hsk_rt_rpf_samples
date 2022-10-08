@@ -44,7 +44,7 @@ protected:
 	virtual void QueryResultsAvailable(uint64_t frameIndex) override;
 	virtual void OnResized(VkExtent2D size) override;
 	virtual void Destroy() override;
-	virtual void OnShadersRecompiled(foray::base::ShaderCompiler *shaderCompiler) override;
+	virtual void OnShadersRecompiled() override;
 
 	void PrepareImguiWindow();
 

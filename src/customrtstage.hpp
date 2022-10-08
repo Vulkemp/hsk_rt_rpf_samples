@@ -6,7 +6,7 @@ class CustomRtStage : public foray::stages::RaytracingStage
 public:
     virtual void Init(const foray::core::VkContext *context, foray::scene::Scene *scene, foray::core::ManagedImage *envmap, foray::core::ManagedImage *noiseSource);
     virtual void CreateRaytraycingPipeline() override;
-    virtual void OnShadersRecompiled(foray::base::ShaderCompiler *shaderCompiler) override;
+    virtual void OnShadersRecompiled() override;
 
     virtual void Destroy() override;
     virtual void DestroyShaders() override;
@@ -21,8 +21,8 @@ public:
     };
 
 protected:
-    RtStageShader mRaygen{"shaders/raygen.rgen.spv"};
-    RtStageShader mDefault_AnyHit{"shaders/ray-default/anyhit.rahit.spv"};
-    RtStageShader mDefault_ClosestHit{"shaders/ray-default/closesthit.rchit.spv"};
-    RtStageShader mDefault_Miss{"shaders/ray-default/miss.rmiss.spv"};
+    RtStageShader mRaygen{"shaders/raygen.rgen"};
+    RtStageShader mDefault_AnyHit{"shaders/ray-default/anyhit.rahit"};
+    RtStageShader mDefault_ClosestHit{"shaders/ray-default/closesthit.rchit"};
+    RtStageShader mDefault_Miss{"shaders/ray-default/miss.rmiss"};
 };
