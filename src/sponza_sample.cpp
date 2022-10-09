@@ -12,7 +12,7 @@
 
 void ImportanceSamplingRtProject::Init()
 {
-	foray::core::logger()->set_level(spdlog::level::debug);
+	foray::logger()->set_level(spdlog::level::debug);
 	LoadEnvironmentMap();
 	GenerateNoiseSource();
 	loadScene();
@@ -74,7 +74,7 @@ void ImportanceSamplingRtProject::loadScene()
 	{
 		const auto &path = scenePaths[i];
 		const auto &log = converter.GetBenchmark().GetLogs()[i];
-		foray::core::logger()->info("Model Load \"{}\":\n{}", path, log.PrintPretty());
+		foray::logger()->info("Model Load \"{}\":\n{}", path, log.PrintPretty());
 	}
 }
 
@@ -87,12 +87,12 @@ void ImportanceSamplingRtProject::LoadEnvironmentMap()
 	std::string pathToEnvMap = std::string(foray::osi::CurrentWorkingDirectory()) + "/../data/textures/envmap.exr";
 	if (!imageLoader.Init(pathToEnvMap))
 	{
-		foray::core::logger()->warn("Loading env map failed \"{}\"", pathToEnvMap);
+		foray::logger()->warn("Loading env map failed \"{}\"", pathToEnvMap);
 		return;
 	}
 	if (!imageLoader.Load())
 	{
-		foray::core::logger()->warn("Loading env map failed #2 \"{}\"", pathToEnvMap);
+		foray::logger()->warn("Loading env map failed #2 \"{}\"", pathToEnvMap);
 		return;
 	}
 
@@ -114,7 +114,7 @@ void ImportanceSamplingRtProject::GenerateNoiseSource()
 	bench.Begin();
 	mNoiseSource.Create(&mContext);
 	bench.End();
-	foray::core::logger()->info("Create Noise Tex \n{}", bench.GetLogs().front().PrintPretty());
+	foray::logger()->info("Create Noise Tex \n{}", bench.GetLogs().front().PrintPretty());
 }
 
 void ImportanceSamplingRtProject::Destroy()
