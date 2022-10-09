@@ -1,20 +1,24 @@
 cmake_minimum_required(VERSION 3.18)
 
-project("hsk_sponza_sample")
+project("foray-intel-sponza")
+
+enable_language(CXX)
+enable_language(CUDA)
+set(CMAKE_CUDA_STANDARD 20)
 
 enable_language(CXX)
 enable_language(CUDA)
 set(CMAKE_CUDA_STANDARD 20)
 
 # Include Compiler Config (sets c++ 20 and compiler flags)
-include("hsk_rt_rpf/cmakescripts/compilerconfig.cmake")
+include("foray/cmakescripts/compilerconfig.cmake")
 
 # Run Locate SDL2 script
 set(SDL2_HINT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/hsk_rt_rpf/third_party")
-include("hsk_rt_rpf/cmakescripts/locatesdl2.cmake")
+include("foray/cmakescripts/locatesdl2.cmake")
 
 
 # Add subdirectories
-add_subdirectory("hsk_rt_rpf")
+add_subdirectory("foray")
 add_subdirectory("foray-denoiser-optix")
 add_subdirectory("src")

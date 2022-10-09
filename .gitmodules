@@ -1,7 +1,6 @@
-[submodule "hsk_rt_rpf"]
-	path = hsk_rt_rpf
-	url = https://github.com/Vulkemp/hsk_rt_rpf
-	branch = development
 [submodule "foray-denoiser-optix"]
 	path = foray-denoiser-optix
 	url = https://github.com/Vulkemp/foray-denoiser-optix
+[submodule "foray"]
+	path = foray
+	url = https://github.com/Vulkemp/foray

@@ -5,18 +5,18 @@
 
 // Include structs and bindings
 
-#include "../../hsk_rt_rpf/src/shaders/rt_common/bindpoints.glsl"
-#include "../../hsk_rt_rpf/src/shaders/common/camera.glsl"
-#include "../../hsk_rt_rpf/src/shaders/rt_common/tlas.glsl"
-#include "../../hsk_rt_rpf/src/shaders/rt_common/imageoutput.glsl"
-#include "../../hsk_rt_rpf/src/shaders/common/lcrng.glsl"
-#include "../../hsk_rt_rpf/src/shaders/common/noisetex.glsl"
-#include "../../hsk_rt_rpf/src/shaders/rt_common/tracerconfig.glsl"
+#include "../../foray/src/shaders/rt_common/bindpoints.glsl"
+#include "../../foray/src/shaders/common/camera.glsl"
+#include "../../foray/src/shaders/rt_common/tlas.glsl"
+#include "../../foray/src/shaders/rt_common/imageoutput.glsl"
+#include "../../foray/src/shaders/common/lcrng.glsl"
+#include "../../foray/src/shaders/common/noisetex.glsl"
+#include "../../foray/src/shaders/rt_common/tracerconfig.glsl"
 
 // Declare hitpayloads
 
 #define HITPAYLOAD_OUT
-#include "../../hsk_rt_rpf/src/shaders/rt_common/payload.glsl"
+#include "../../foray/src/shaders/rt_common/payload.glsl"
 
 void main() 
 {

@@ -1,18 +1,18 @@
 #include "sponza_sample.hpp"
-#include <gltfconvert/hsk_modelconverter.hpp>
-#include <scenegraph/components/hsk_camera.hpp>
-#include <scenegraph/globalcomponents/hsk_cameramanager.hpp>
-#include <scenegraph/globalcomponents/hsk_tlasmanager.hpp>
-#include <scenegraph/components/hsk_freecameracontroller.hpp>
+#include <gltf/foray_modelconverter.hpp>
+#include <scene/components/foray_camera.hpp>
+#include <scene/globalcomponents/foray_cameramanager.hpp>
+#include <scene/globalcomponents/foray_tlasmanager.hpp>
+#include <scene/components/foray_freecameracontroller.hpp>
 #include <imgui/imgui.h>
-#include <memory/hsk_managedimage.hpp>
+#include <core/foray_managedimage.hpp>
 #include <vulkan/vulkan.h>
-#include <utility/hsk_imageloader.hpp>
-#include <bench/hsk_hostbenchmark.hpp>
+#include <util/foray_imageloader.hpp>
+#include <bench/foray_hostbenchmark.hpp>
 
 void ImportanceSamplingRtProject::Init()
 {
-	hsk::logger()->set_level(spdlog::level::debug);
+	foray::core::logger()->set_level(spdlog::level::debug);
 	LoadEnvironmentMap();
 	GenerateNoiseSource();
 	loadScene();
@@ -29,12 +29,12 @@ void ImportanceSamplingRtProject::Update(float delta)
 	}
 }
 
-void ImportanceSamplingRtProject::OnEvent(const hsk::Event *event)
+void ImportanceSamplingRtProject::OnEvent(const foray::Event *event)
 {
 	DefaultAppBase::OnEvent(event);
-	auto buttonInput = dynamic_cast<const hsk::EventInputBinary *>(event);
-	auto axisInput = dynamic_cast<const hsk::EventInputAnalogue *>(event);
-	auto windowResized = dynamic_cast<const hsk::EventWindowResized *>(event);
+	auto buttonInput = dynamic_cast<const foray::EventInputBinary *>(event);
+	auto axisInput = dynamic_cast<const foray::EventInputAnalogue *>(event);
+	auto windowResized = dynamic_cast<const foray::EventWindowResized *>(event);
 	if (windowResized)
 	{
 		spdlog::info("Window resized w {} h {}", windowResized->Current.Width, windowResized->Current.Height);
@@ -56,25 +56,25 @@ void ImportanceSamplingRtProject::loadScene()
 		"../glTF-Sample-Models/2.0/InterpolationTest/glTF/InterpolationTest.gltf",
 	});
 
-	mScene = std::make_unique<hsk::Scene>(&mContext);
-	hsk::ModelConverter converter(mScene.get());
+	mScene = std::make_unique<foray::scene::Scene>(&mContext);
+	foray::gltf::ModelConverter converter(mScene.get());
 	for (const auto &path : scenePaths)
 	{
-		converter.LoadGltfModel(hsk::MakeRelativePath(path));
+		converter.LoadGltfModel(foray::osi::MakeRelativePath(path));
 	}
-	mScene->MakeComponent<hsk::TlasManager>(&mContext)->CreateOrUpdate();
+	mScene->MakeComponent<foray::scene::TlasManager>(&mContext)->CreateOrUpdate();
 
 	auto cameraNode = mScene->MakeNode();
 
-	cameraNode->MakeComponent<hsk::Camera>()->InitDefault();
-	cameraNode->MakeComponent<hsk::FreeCameraController>();
-	mScene->GetComponent<hsk::CameraManager>()->RefreshCameraList();
+	cameraNode->MakeComponent<foray::scene::Camera>()->InitDefault();
+	cameraNode->MakeComponent<foray::scene::FreeCameraController>();
+	mScene->GetComponent<foray::scene::CameraManager>()->RefreshCameraList();
 
 	for (int32_t i = 0; i < scenePaths.size(); i++)
 	{
 		const auto &path = scenePaths[i];
 		const auto &log = converter.GetBenchmark().GetLogs()[i];
-		hsk::logger()->info("Model Load \"{}\":\n{}", path, log.PrintPretty());
+		foray::core::logger()->info("Model Load \"{}\":\n{}", path, log.PrintPretty());
 	}
 }
 
@@ -82,17 +82,17 @@ void ImportanceSamplingRtProject::LoadEnvironmentMap()
 {
 
 	constexpr VkFormat hdrVkFormat = VK_FORMAT_R32G32B32A32_SFLOAT;
-	hsk::ImageLoader<hdrVkFormat> imageLoader;
+	foray::util::ImageLoader<hdrVkFormat> imageLoader;
 	// env maps at https://polyhaven.com/a/alps_field
-	std::string pathToEnvMap = std::string(hsk::CurrentWorkingDirectory()) + "/../data/textures/envmap.exr";
+	std::string pathToEnvMap = std::string(foray::osi::CurrentWorkingDirectory()) + "/../data/textures/envmap.exr";
 	if (!imageLoader.Init(pathToEnvMap))
 	{
-		hsk::logger()->warn("Loading env map failed \"{}\"", pathToEnvMap);
+		foray::core::logger()->warn("Loading env map failed \"{}\"", pathToEnvMap);
 		return;
 	}
 	if (!imageLoader.Load())
 	{
-		hsk::logger()->warn("Loading env map failed #2 \"{}\"", pathToEnvMap);
+		foray::core::logger()->warn("Loading env map failed #2 \"{}\"", pathToEnvMap);
 		return;
 	}
 
@@ -102,7 +102,7 @@ void ImportanceSamplingRtProject::LoadEnvironmentMap()
 		.depth = 1,
 	};
 
-	hsk::ManagedImage::CreateInfo ci("Environment map", VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, hdrVkFormat, ext3D);
+	foray::core::ManagedImage::CreateInfo ci("Environment map", VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, hdrVkFormat, ext3D);
 
 	imageLoader.InitManagedImage(&mContext, &mSphericalEnvMap, ci);
 	imageLoader.Destroy();
@@ -110,11 +110,11 @@ void ImportanceSamplingRtProject::LoadEnvironmentMap()
 
 void ImportanceSamplingRtProject::GenerateNoiseSource()
 {
-	hsk::HostBenchmark bench;
+	foray::bench::HostBenchmark bench;
 	bench.Begin();
 	mNoiseSource.Create(&mContext);
 	bench.End();
-	hsk::logger()->info("Create Noise Tex \n{}", bench.GetLogs().front().PrintPretty());
+	foray::core::logger()->info("Create Noise Tex \n{}", bench.GetLogs().front().PrintPretty());
 }
 
 void ImportanceSamplingRtProject::Destroy()
@@ -131,10 +131,10 @@ void ImportanceSamplingRtProject::Destroy()
 	DefaultAppBase::Destroy();
 }
 
-void ImportanceSamplingRtProject::OnShadersRecompiled(hsk::ShaderCompiler *shaderCompiler)
+void ImportanceSamplingRtProject::OnShadersRecompiled()
 {
-	mGbufferStage.OnShadersRecompiled(shaderCompiler);
-	mRaytraycingStage.OnShadersRecompiled(shaderCompiler);
+	mGbufferStage.OnShadersRecompiled();
+	mRaytraycingStage.OnShadersRecompiled();
 }
 
 void ImportanceSamplingRtProject::PrepareImguiWindow()
@@ -179,11 +179,11 @@ void ImportanceSamplingRtProject::PrepareImguiWindow()
 void ImportanceSamplingRtProject::ConfigureStages()
 {
 	mGbufferStage.Init(&mContext, mScene.get());
-	auto albedoImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::Albedo);
-	auto normalImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::WorldspaceNormal);
+	auto albedoImage = mGbufferStage.GetColorAttachmentByName(foray::stages::GBufferStage::Albedo);
+	auto normalImage = mGbufferStage.GetColorAttachmentByName(foray::stages::GBufferStage::WorldspaceNormal);
 
 	mRaytraycingStage.Init(&mContext, mScene.get(), &mSphericalEnvMap, &mNoiseSource.GetImage());
-	auto rtImage = mRaytraycingStage.GetColorAttachmentByName(hsk::RaytracingStage::RaytracingRenderTargetName);
+	auto rtImage = mRaytraycingStage.GetColorAttachmentByName(foray::stages::RaytracingStage::RaytracingRenderTargetName);
 
 	UpdateOutputs();
 
@@ -191,10 +191,10 @@ void ImportanceSamplingRtProject::ConfigureStages()
 	PrepareImguiWindow();
 
 	// �nit copy stage
-	mImageToSwapchainStage.Init(&mContext, mOutputs[mCurrentOutput], hsk::ImageToSwapchainStage::PostCopy{.AccessFlags = (VkAccessFlagBits::VK_ACCESS_SHADER_WRITE_BIT), .ImageLayout = (VkImageLayout::VK_IMAGE_LAYOUT_GENERAL), .QueueFamilyIndex = (mContext.QueueGraphics)});
+	mImageToSwapchainStage.Init(&mContext, mOutputs[mCurrentOutput], foray::stages::ImageToSwapchainStage::PostCopy{.AccessFlags = (VkAccessFlagBits::VK_ACCESS_SHADER_WRITE_BIT), .ImageLayout = (VkImageLayout::VK_IMAGE_LAYOUT_GENERAL), .QueueFamilyIndex = (mContext.QueueGraphics)});
 }
 
-void ImportanceSamplingRtProject::RecordCommandBuffer(hsk::FrameRenderInfo &renderInfo)
+void ImportanceSamplingRtProject::RecordCommandBuffer(foray::base::FrameRenderInfo &renderInfo)
 {
 	mScene->Update(renderInfo);
 	mGbufferStage.RecordFrame(renderInfo);
@@ -220,10 +220,10 @@ void ImportanceSamplingRtProject::OnResized(VkExtent2D size)
 {
 	mScene->InvokeOnResized(size);
 	mGbufferStage.OnResized(size);
-	auto albedoImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::Albedo);
-	auto normalImage = mGbufferStage.GetColorAttachmentByName(hsk::GBufferStage::WorldspaceNormal);
+	auto albedoImage = mGbufferStage.GetColorAttachmentByName(foray::stages::GBufferStage::Albedo);
+	auto normalImage = mGbufferStage.GetColorAttachmentByName(foray::stages::GBufferStage::WorldspaceNormal);
 	mRaytraycingStage.OnResized(size);
-	auto rtImage = mRaytraycingStage.GetColorAttachmentByName(hsk::RaytracingStage::RaytracingRenderTargetName);
+	auto rtImage = mRaytraycingStage.GetColorAttachmentByName(foray::stages::RaytracingStage::RaytracingRenderTargetName);
 
 	UpdateOutputs();
 
@@ -231,7 +231,7 @@ void ImportanceSamplingRtProject::OnResized(VkExtent2D size)
 	mImageToSwapchainStage.OnResized(size, mOutputs[mCurrentOutput]);
 }
 
-void lUpdateOutput(std::unordered_map<std::string_view, hsk::ManagedImage *> &map, hsk::RenderStage &stage, const std::string_view name)
+void lUpdateOutput(std::unordered_map<std::string_view, foray::core::ManagedImage *> &map, foray::stages::RenderStage &stage, const std::string_view name)
 {
 	map[name] = stage.GetColorAttachmentByName(name);
 }
@@ -239,13 +239,13 @@ void lUpdateOutput(std::unordered_map<std::string_view, hsk::ManagedImage *> &ma
 void ImportanceSamplingRtProject::UpdateOutputs()
 {
 	mOutputs.clear();
-	lUpdateOutput(mOutputs, mGbufferStage, hsk::GBufferStage::Albedo);
-	lUpdateOutput(mOutputs, mGbufferStage, hsk::GBufferStage::WorldspacePosition);
-	lUpdateOutput(mOutputs, mGbufferStage, hsk::GBufferStage::WorldspaceNormal);
-	lUpdateOutput(mOutputs, mGbufferStage, hsk::GBufferStage::MotionVector);
-	lUpdateOutput(mOutputs, mGbufferStage, hsk::GBufferStage::MaterialIndex);
-	lUpdateOutput(mOutputs, mGbufferStage, hsk::GBufferStage::MeshInstanceIndex);
-	lUpdateOutput(mOutputs, mRaytraycingStage, hsk::RaytracingStage::RaytracingRenderTargetName);
+	lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::Albedo);
+	lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::WorldspacePosition);
+	lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::WorldspaceNormal);
+	lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::MotionVector);
+	lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::MaterialIndex);
+	lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::MeshInstanceIndex);
+	lUpdateOutput(mOutputs, mRaytraycingStage, foray::stages::RaytracingStage::RaytracingRenderTargetName);
 
 	if (mCurrentOutput.size() == 0 || !mOutputs.contains(mCurrentOutput))
 	{

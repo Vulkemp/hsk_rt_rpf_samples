@@ -1,31 +1,28 @@
 #pragma once
-#include <stages/hsk_raytracingstage.hpp>
+#include <stages/foray_raytracingstage.hpp>
 
-namespace hsk
+class CustomRtStage : public foray::stages::RaytracingStage
 {
-    class CustomRtStage : public RaytracingStage
+public:
+    virtual void Init(const foray::core::VkContext *context, foray::scene::Scene *scene, foray::core::ManagedImage *envmap, foray::core::ManagedImage *noiseSource);
+    virtual void CreateRaytraycingPipeline() override;
+    virtual void OnShadersRecompiled() override;
+
+    virtual void Destroy() override;
+    virtual void DestroyShaders() override;
+
+    struct RtStageShader
     {
-    public:
-        virtual void Init(const VkContext *context, Scene *scene, ManagedImage *envmap, ManagedImage *noiseSource);
-        virtual void CreateRaytraycingPipeline() override;
-        virtual void OnShadersRecompiled(ShaderCompiler* shaderCompiler) override;
+        std::string Path = "";
+        foray::core::ShaderModule Module;
 
-        virtual void Destroy() override;
-        virtual void DestroyShaders() override;
-
-        struct RtStageShader
-        {
-            std::string Path = "";
-            ShaderModule Module;
-
-            void Create(const VkContext *context);
-            void Destroy();
-        };
-
-    protected:
-        RtStageShader mRaygen{"shaders/raygen.rgen.spv"};
-        RtStageShader mDefault_AnyHit{"shaders/ray-default/anyhit.rahit.spv"};
-        RtStageShader mDefault_ClosestHit{"shaders/ray-default/closesthit.rchit.spv"};
-        RtStageShader mDefault_Miss{"shaders/ray-default/miss.rmiss.spv"};
+        void Create(const foray::core::VkContext *context);
+        void Destroy();
     };
-} // namespace hsk
+
+protected:
+    RtStageShader mRaygen{"shaders/raygen.rgen"};
+    RtStageShader mDefault_AnyHit{"shaders/ray-default/anyhit.rahit"};
+    RtStageShader mDefault_ClosestHit{"shaders/ray-default/closesthit.rchit"};
+    RtStageShader mDefault_Miss{"shaders/ray-default/miss.rmiss"};
+};
