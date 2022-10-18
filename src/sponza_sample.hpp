@@ -76,7 +76,6 @@ class ImportanceSamplingRtProject : public foray::base::DefaultAppBase
     foray::core::ManagedImage                       mDenoisedImage;
     foray::optix::OptiXDenoiserStage                mDenoiser;
     foray::stages::DenoiserSynchronisationSemaphore mDenoiseSemaphore;
-    uint64_t mDenoiseSemaphoreValue = 0;
 
     void ConfigureStages();
 

@@ -8,7 +8,6 @@
 #include <scene/globalcomponents/foray_cameramanager.hpp>
 #include <scene/globalcomponents/foray_tlasmanager.hpp>
 #include <util/foray_imageloader.hpp>
-#include <vulkan/vulkan.h>
 
 void ImportanceSamplingRtProject::Init()
 {
@@ -41,7 +40,7 @@ void ImportanceSamplingRtProject::BeforeDeviceBuilding(vkb::DeviceBuilder& devic
 
 void ImportanceSamplingRtProject::BeforeSyncObjectCreation(uint32_t& inflightcount, uint32_t& cmdbufcount)
 {
-    cmdbufcount = 2U;
+    cmdbufcount = 1U;
 }
 
 void ImportanceSamplingRtProject::Update(float delta)
@@ -78,7 +77,8 @@ void ImportanceSamplingRtProject::loadScene()
         // "../sponza_model/Main/NewSponza_Main_Blender_glTF.gltf",
         // "../sponza_model/PKG_B_Ivy/NewSponza_IvyGrowth_glTF.gltf",
         "../glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",
-        "../glTF-Sample-Models/2.0/InterpolationTest/glTF/InterpolationTest.gltf",
+        // "../glTF-Sample-Models/2.0/InterpolationTest/glTF/InterpolationTest.gltf",
+        // "../../foray-examples/data/gltf/minimal/minimal.gltf"
     });
 
     mScene = std::make_unique<foray::scene::Scene>(&mContext);
@@ -153,6 +153,9 @@ void ImportanceSamplingRtProject::Destroy()
     mImguiStage.Destroy();
     mRaytraycingStage.Destroy();
     mSphericalEnvMap.Destroy();
+    mDenoiser.Destroy();
+    mDenoiseSemaphore.Destroy();
+    mDenoisedImage.Destroy();
 
     DefaultAppBase::Destroy();
 }
@@ -208,10 +211,10 @@ void ImportanceSamplingRtProject::ConfigureStages()
     auto albedoImage = mGbufferStage.GetColorAttachmentByName(foray::stages::GBufferStage::Albedo);
     auto normalImage = mGbufferStage.GetColorAttachmentByName(foray::stages::GBufferStage::WorldspaceNormal);
 
-    mRaytraycingStage.Init(&mContext, mScene.get(), &mSphericalEnvMap, &mNoiseSource.GetImage());
-    auto rtImage = mRaytraycingStage.GetColorAttachmentByName(foray::stages::RaytracingStage::RaytracingRenderTargetName);
+    // mRaytraycingStage.Init(&mContext, mScene.get(), &mSphericalEnvMap, &mNoiseSource.GetImage());
+    // auto rtImage = mRaytraycingStage.GetColorAttachmentByName(foray::stages::RaytracingStage::RaytracingRenderTargetName);
 
-    mDenoiseSemaphore.Create(&mContext);
+    // mDenoiseSemaphore.Create(&mContext);
 
     VkExtent3D extent{.width = mContext.Swapchain.extent.width, .height = mContext.Swapchain.extent.height, .depth = 1};
 
@@ -220,14 +223,14 @@ void ImportanceSamplingRtProject::ConfigureStages()
                                                  | VkImageUsageFlagBits::VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlagBits::VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
                                              VkFormat::VK_FORMAT_R16G16B16A16_SFLOAT, extent);
 
-    mDenoisedImage.Create(&mContext, ci);
+    // mDenoisedImage.Create(&mContext, ci);
 
-    foray::stages::DenoiserConfig config(rtImage, albedoImage, normalImage, &mDenoisedImage, mDenoiseSemaphore);
+    // foray::stages::DenoiserConfig config(rtImage, albedoImage, normalImage, &mDenoisedImage, mDenoiseSemaphore);
 
-    mDenoiser.Init(&mContext, config);
+    // mDenoiser.Init(&mContext, config);
 
     UpdateOutputs();
-    mCurrentOutput = "Denoised Image";
+    mCurrentOutput = foray::stages::GBufferStage::Albedo;
 
     mImguiStage.Init(&mContext, mOutputs[mCurrentOutput]);
     PrepareImguiWindow();
@@ -237,6 +240,15 @@ void ImportanceSamplingRtProject::ConfigureStages()
                                 foray::stages::ImageToSwapchainStage::PostCopy{.AccessFlags      = (VkAccessFlagBits::VK_ACCESS_TRANSFER_WRITE_BIT),
                                                                                .ImageLayout      = (VkImageLayout::VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL),
                                                                                .QueueFamilyIndex = (mContext.QueueGraphics)});
+
+    // Setup Inflight Frames
+    for(std::unique_ptr<foray::base::InFlightFrame>& frame : mFrames)
+    {
+        // frame->GetAuxiliaryCommandBuffer(0).AddSignalSemaphore(foray::core::SemaphoreSubmit::Timeline(mDenoiseSemaphore.GetSemaphore(), 0, VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT));
+        frame->GetPrimaryCommandBuffer().AddWaitSemaphore(
+            foray::core::SemaphoreSubmit::Binary(frame->GetSwapchainImageReady(), VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR));
+        // frame->GetPrimaryCommandBuffer().AddWaitSemaphore(foray::core::SemaphoreSubmit::Timeline(mDenoiseSemaphore.GetSemaphore(), 0, VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT));
+    }
 }
 
 void ImportanceSamplingRtProject::RecordCommandBuffer(foray::base::FrameRenderInfo& renderInfo)
@@ -244,42 +256,46 @@ void ImportanceSamplingRtProject::RecordCommandBuffer(foray::base::FrameRenderIn
     uint64_t timelineValueAtBegin       = renderInfo.GetFrameNumber() * 2;
     uint64_t timelineValueBeforeDenoise = timelineValueAtBegin + 1;
     uint64_t timelineValueAfterDenoise  = timelineValueBeforeDenoise + 1;
-    if(renderInfo.GetFrameNumber() < mInFlightFrameCount)
-    {
-        renderInfo.GetAuxCommandBuffer(0).AddSignalSemaphore(
-            foray::core::SemaphoreSubmit::Timeline(mDenoiseSemaphore.GetSemaphore(), timelineValueBeforeDenoise, VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT));
-        renderInfo.GetPrimaryCommandBuffer().AddWaitSemaphore(
-            foray::core::SemaphoreSubmit::Timeline(mDenoiseSemaphore.GetSemaphore(), timelineValueAfterDenoise, VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT));
-    }
-    else
-    {
-        renderInfo.GetAuxCommandBuffer(0).GetSignalSemaphores().back().TimelineValue  = timelineValueBeforeDenoise;
-        renderInfo.GetPrimaryCommandBuffer().GetWaitSemaphores().back().TimelineValue = timelineValueAfterDenoise;
-    }
-    renderInfo.GetAuxCommandBuffer(0).Begin();
-    renderInfo.GetPrimaryCommandBuffer().Begin();
+    timelineValueAtBegin       = renderInfo.GetFrameNumber();
+    timelineValueBeforeDenoise = timelineValueAtBegin + 1;
+    timelineValueAfterDenoise  = timelineValueBeforeDenoise;
 
-    mScene->Update(renderInfo);
-    mGbufferStage.RecordFrame(renderInfo.GetAuxCommandBuffer(0), renderInfo);
+    foray::core::DeviceCommandBuffer& primaryCmdBuffer = renderInfo.GetPrimaryCommandBuffer();
+    foray::core::DeviceCommandBuffer& auxCmdBuffer     = renderInfo.GetAuxCommandBuffer(0);
 
-    mRaytraycingStage.RecordFrame(renderInfo.GetAuxCommandBuffer(0), renderInfo);
+    // Update timeline synchronisation semaphores
+    // auxCmdBuffer.GetSignalSemaphores().back().TimelineValue   = timelineValueBeforeDenoise;
+    // primaryCmdBuffer.GetWaitSemaphores().back().TimelineValue = timelineValueAfterDenoise;
 
-    mDenoiser.BeforeDenoise(renderInfo.GetAuxCommandBuffer(0), renderInfo);
-    renderInfo.GetAuxCommandBuffer(0).End();
-    renderInfo.GetAuxCommandBuffer(0).Submit(mContext.QueueGraphics);
+    // Begin aux command buffer
+    primaryCmdBuffer.Begin();
 
-    mDenoiser.DispatchDenoise(timelineValueBeforeDenoise, timelineValueAfterDenoise);
+    mScene->Update(renderInfo, primaryCmdBuffer);
+    mGbufferStage.RecordFrame(primaryCmdBuffer, renderInfo);
 
-    mDenoiser.AfterDenoise(renderInfo.GetPrimaryCommandBuffer(), renderInfo);
+    // mRaytraycingStage.RecordFrame(primaryCmdBuffer, renderInfo);
+
+    // mDenoiser.BeforeDenoise(auxCmdBuffer, renderInfo);
+    // auxCmdBuffer.End();
+    // auxCmdBuffer.Submit(mContext.QueueGraphics);
+
+    // mDenoiser.DispatchDenoise(timelineValueBeforeDenoise, timelineValueAfterDenoise);
+
+    // primaryCmdBuffer.Begin();
+
+    // mDenoiser.AfterDenoise(primaryCmdBuffer, renderInfo);
 
     // draw imgui windows
-    mImguiStage.RecordFrame(renderInfo.GetPrimaryCommandBuffer(), renderInfo);
+    mImguiStage.RecordFrame(primaryCmdBuffer, renderInfo);
+
+    renderInfo.GetInFlightFrame()->ClearSwapchainImage(primaryCmdBuffer);
 
     // copy final image to swapchain
-    mImageToSwapchainStage.RecordFrame(renderInfo.GetPrimaryCommandBuffer(), renderInfo);
+    mImageToSwapchainStage.RecordFrame(primaryCmdBuffer, renderInfo);
 
-    renderInfo.GetPrimaryCommandBuffer().End();
-    renderInfo.GetPrimaryCommandBuffer().Submit(mContext.QueueGraphics);
+    renderInfo.GetInFlightFrame()->PrepareSwapchainImageForPresent(primaryCmdBuffer);
+    primaryCmdBuffer.End();
+    primaryCmdBuffer.Submit(mContext.QueueGraphics);
 }
 
 void ImportanceSamplingRtProject::QueryResultsAvailable(uint64_t frameIndex)
@@ -319,7 +335,7 @@ void ImportanceSamplingRtProject::UpdateOutputs()
     lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::MotionVector);
     lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::MaterialIndex);
     lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::MeshInstanceIndex);
-    lUpdateOutput(mOutputs, mRaytraycingStage, foray::stages::RaytracingStage::RaytracingRenderTargetName);
+    // lUpdateOutput(mOutputs, mRaytraycingStage, foray::stages::RaytracingStage::RaytracingRenderTargetName);
     mOutputs.emplace("Denoised Image", &mDenoisedImage);
 
     if(mCurrentOutput.size() == 0 || !mOutputs.contains(mCurrentOutput))
@@ -332,6 +348,7 @@ void ImportanceSamplingRtProject::UpdateOutputs()
         {
             mCurrentOutput = mOutputs.begin()->first;
         }
+        foray::logger()->info("Select {} as current output", mCurrentOutput);
     }
 }
 
