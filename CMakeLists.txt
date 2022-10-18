@@ -6,15 +6,11 @@ enable_language(CXX)
 enable_language(CUDA)
 set(CMAKE_CUDA_STANDARD 20)
 
-enable_language(CXX)
-enable_language(CUDA)
-set(CMAKE_CUDA_STANDARD 20)
-
 # Include Compiler Config (sets c++ 20 and compiler flags)
 include("foray/cmakescripts/compilerconfig.cmake")
 
 # Run Locate SDL2 script
-set(SDL2_HINT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/hsk_rt_rpf/third_party")
+set(SDL2_HINT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/foray/third_party")
 include("foray/cmakescripts/locatesdl2.cmake")
 
 
