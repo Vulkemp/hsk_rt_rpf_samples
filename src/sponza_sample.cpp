@@ -127,7 +127,7 @@ void ImportanceSamplingRtProject::LoadEnvironmentMap()
         .depth  = 1,
     };
 
-    foray::core::ManagedImage::CreateInfo ci("Environment map", VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+    foray::core::ManagedImage::CreateInfo ci("Environment map",
                                              VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, hdrVkFormat, ext3D);
 
     imageLoader.InitManagedImage(&mContext, &mSphericalEnvMap, ci);
@@ -218,7 +218,7 @@ void ImportanceSamplingRtProject::ConfigureStages()
 
     VkExtent3D extent{.width = mContext.Swapchain.extent.width, .height = mContext.Swapchain.extent.height, .depth = 1};
 
-    foray::core::ManagedImage::CreateInfo ci("Denoised Image", VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED,
+    foray::core::ManagedImage::CreateInfo ci("Denoised Image",
                                              VkImageUsageFlagBits::VK_IMAGE_USAGE_STORAGE_BIT | VkImageUsageFlagBits::VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
                                                  | VkImageUsageFlagBits::VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlagBits::VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
                                              VkFormat::VK_FORMAT_R16G16B16A16_SFLOAT, extent);
