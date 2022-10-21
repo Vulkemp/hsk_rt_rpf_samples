@@ -189,6 +189,7 @@ void ImportanceSamplingRtProject::ConfigureStages()
     mGbufferStage.Init(&mContext, mScene.get());
     auto albedoImage = mGbufferStage.GetColorAttachmentByName(foray::stages::GBufferStage::Albedo);
     auto normalImage = mGbufferStage.GetColorAttachmentByName(foray::stages::GBufferStage::WorldspaceNormal);
+    auto motionImage = mGbufferStage.GetColorAttachmentByName(foray::stages::GBufferStage::MotionVector);
 
     mRaytraycingStage.Init(&mContext, mScene.get(), &mSphericalEnvMap, &mNoiseSource.GetImage());
     auto rtImage = mRaytraycingStage.GetColorAttachmentByName(foray::stages::RaytracingStage::RaytracingRenderTargetName);
@@ -204,12 +205,15 @@ void ImportanceSamplingRtProject::ConfigureStages()
 
     mDenoisedImage.Create(&mContext, ci);
 
-    foray::stages::DenoiserConfig config(rtImage, albedoImage, normalImage, &mDenoisedImage, mDenoiseSemaphore);
+    foray::stages::DenoiserConfig config(rtImage, &mDenoisedImage);
+    config.AlbedoInput = albedoImage;
+    config.NormalInput = normalImage;
+    config.MotionInput = motionImage;
+    config.Semaphore   = &mDenoiseSemaphore;
 
     mDenoiser.Init(&mContext, config);
 
     UpdateOutputs();
-    mCurrentOutput = foray::stages::GBufferStage::Albedo;
 
     mImguiStage.Init(&mContext, mOutputs[mCurrentOutput]);
     PrepareImguiWindow();
@@ -308,9 +312,6 @@ void ImportanceSamplingRtProject::UpdateOutputs()
     lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::Albedo);
     lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::WorldspacePosition);
     lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::WorldspaceNormal);
-    lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::MotionVector);
-    lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::MaterialIndex);
-    lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::MeshInstanceIndex);
     lUpdateOutput(mOutputs, mRaytraycingStage, foray::stages::RaytracingStage::RaytracingRenderTargetName);
     mOutputs.emplace("Denoised Image", &mDenoisedImage);
 
@@ -324,7 +325,6 @@ void ImportanceSamplingRtProject::UpdateOutputs()
         {
             mCurrentOutput = mOutputs.begin()->first;
         }
-        foray::logger()->info("Select {} as current output", mCurrentOutput);
     }
 }
 
