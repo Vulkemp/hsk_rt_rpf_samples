@@ -4,7 +4,7 @@
 class CustomRtStage : public foray::stages::RaytracingStage
 {
 public:
-    virtual void Init(const foray::core::VkContext *context, foray::scene::Scene *scene, foray::core::ManagedImage *envmap, foray::core::ManagedImage *noiseSource);
+    virtual void Init(foray::core::Context *context, foray::scene::Scene *scene, foray::core::ManagedImage *envmap, foray::core::ManagedImage *noiseSource);
     virtual void CreateRaytraycingPipeline() override;
     virtual void OnShadersRecompiled() override;
 
@@ -16,7 +16,7 @@ public:
         std::string Path = "";
         foray::core::ShaderModule Module;
 
-        void Create(const foray::core::VkContext *context);
+        void Create(foray::core::Context *context);
         void Destroy();
     };
 

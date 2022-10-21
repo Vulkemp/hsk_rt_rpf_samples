@@ -1,7 +1,7 @@
 #include "customrtstage.hpp"
 #include <core/foray_shadermanager.hpp>
 
-void CustomRtStage::Init(const foray::core::VkContext *context, foray::scene::Scene *scene, foray::core::ManagedImage *envmap, foray::core::ManagedImage *noiseSource)
+void CustomRtStage::Init(foray::core::Context *context, foray::scene::Scene *scene, foray::core::ManagedImage *envmap, foray::core::ManagedImage *noiseSource)
 {
     mContext = context;
     mScene = scene;
@@ -23,7 +23,7 @@ void CustomRtStage::Init(const foray::core::VkContext *context, foray::scene::Sc
                                       .minLod = 0,
                                       .maxLod = 0,
                                       .unnormalizedCoordinates = VK_FALSE};
-        foray::AssertVkResult(vkCreateSampler(context->Device, &samplerCi, nullptr, &mNoiseSource.Sampler));
+        foray::AssertVkResult(vkCreateSampler(context->Device(), &samplerCi, nullptr, &mNoiseSource.Sampler));
     }
     RaytracingStage::Init();
 }
@@ -62,7 +62,7 @@ void CustomRtStage::DestroyShaders()
     mDefault_Miss.Destroy();
 }
 
-void CustomRtStage::RtStageShader::Create(const foray::core::VkContext *context)
+void CustomRtStage::RtStageShader::Create(foray::core::Context *context)
 {
     Module.LoadFromSpirv(context, Path);
 }
