@@ -12,7 +12,7 @@
 void ImportanceSamplingRtProject::ApiBeforeInit()
 {
     mAuxiliaryCommandBufferCount = 1;
-    mWindowSwapchain.GetWindow().DisplayMode(foray::EDisplayMode::WindowedResizable);
+    mWindowSwapchain.GetWindow().DisplayMode(foray::osi::EDisplayMode::WindowedResizable);
 }
 
 void ImportanceSamplingRtProject::ApiInit()
@@ -44,11 +44,8 @@ void ImportanceSamplingRtProject::ApiBeforeDeviceBuilding(vkb::DeviceBuilder& de
     deviceBuilder.add_pNext(&mTimelineFeature);
 }
 
-void ImportanceSamplingRtProject::ApiOnEvent(const foray::Event* event)
+void ImportanceSamplingRtProject::ApiOnEvent(const foray::osi::Event* event)
 {
-    auto buttonInput   = dynamic_cast<const foray::EventInputBinary*>(event);
-    auto axisInput     = dynamic_cast<const foray::EventInputAnalogue*>(event);
-    auto windowResized = dynamic_cast<const foray::EventWindowResized*>(event);
     mScene->InvokeOnEvent(event);
 
     // process events for imgui
