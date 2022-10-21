@@ -49,10 +49,6 @@ void ImportanceSamplingRtProject::ApiOnEvent(const foray::Event* event)
     auto buttonInput   = dynamic_cast<const foray::EventInputBinary*>(event);
     auto axisInput     = dynamic_cast<const foray::EventInputAnalogue*>(event);
     auto windowResized = dynamic_cast<const foray::EventWindowResized*>(event);
-    if(windowResized)
-    {
-        spdlog::info("Window resized w {} h {}", windowResized->Current.Width, windowResized->Current.Height);
-    }
     mScene->InvokeOnEvent(event);
 
     // process events for imgui
@@ -146,12 +142,6 @@ void ImportanceSamplingRtProject::ApiDestroy()
     mDenoiseSemaphore.Destroy();
     mDenoisedImage.Destroy();
 }
-
-// void ImportanceSamplingRtProject::OnShadersRecompiled()
-// {
-//     mGbufferStage.OnShadersRecompiled();
-//     mRaytraycingStage.OnShadersRecompiled();
-// }
 
 void ImportanceSamplingRtProject::PrepareImguiWindow()
 {
