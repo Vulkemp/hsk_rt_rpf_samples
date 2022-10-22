@@ -150,6 +150,8 @@ void ImportanceSamplingRtProject::PrepareImguiWindow()
         {
             ImGui::Text("FPS: %f avg %f min", 1.f / analysis.AvgFrameTime, 1.f / analysis.MaxFrameTime);
         }
+        std::string denoiserLabel = this->mDenoiser.GetUILabel();
+        ImGui::Text("%s", denoiserLabel.c_str());
 
         const char* current = mCurrentOutput.data();
         if(ImGui::BeginCombo("Output", current))

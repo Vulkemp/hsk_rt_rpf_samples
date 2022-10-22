@@ -72,7 +72,7 @@ class ImportanceSamplingRtProject : public foray::base::DefaultAppBase
     VkPhysicalDeviceTimelineSemaphoreFeatures       mTimelineFeature{};
     foray::core::ManagedImage                       mDenoisedImage;
     foray::optix::OptiXDenoiserStage                mDenoiser;
-    foray::stages::DenoiserSynchronisationSemaphore mDenoiseSemaphore;
+    foray::util::ExternalSemaphore mDenoiseSemaphore;
 
     void ConfigureStages();
 
