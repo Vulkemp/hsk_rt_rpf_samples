@@ -333,5 +333,5 @@ void ImportanceSamplingRtProject::ApplyOutput()
     vkDeviceWaitIdle(mDevice);
     auto output = mOutputs[mCurrentOutput];
     mImguiStage.SetTargetImage(output);
-    mImageToSwapchainStage.SetTargetImage(output);
+    mImageToSwapchainStage.SetSrcImage(output);
 }
