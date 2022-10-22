@@ -11,10 +11,10 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <map>
 #include <optional>
 #include <set>
 #include <stdexcept>
-#include <unordered_map>
 #include <vector>
 
 #include "customrtstage.hpp"
@@ -76,9 +76,9 @@ class ImportanceSamplingRtProject : public foray::base::DefaultAppBase
 
     void ConfigureStages();
 
-    std::unordered_map<std::string_view, foray::core::ManagedImage*> mOutputs;
-    std::string_view                                                 mCurrentOutput = "";
-    bool                                                             mOutputChanged = false;
+    std::map<std::string_view, foray::core::ManagedImage*> mOutputs;
+    std::string_view                                       mCurrentOutput = "";
+    bool                                                   mOutputChanged = false;
 
 #ifdef ENABLE_GBUFFER_BENCH
     foray::BenchmarkLog mDisplayedLog;

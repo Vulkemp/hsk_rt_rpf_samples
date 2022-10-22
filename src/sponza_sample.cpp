@@ -276,12 +276,12 @@ void ImportanceSamplingRtProject::ApiRender(foray::base::FrameRenderInfo& render
     // draw imgui windows
     mImguiStage.RecordFrame(primaryCmdBuffer, renderInfo);
 
-    renderInfo.GetInFlightFrame()->ClearSwapchainImage(primaryCmdBuffer, renderInfo.GetImageLayoutCache());
+    renderInfo.ClearSwapchainImage(primaryCmdBuffer);
 
     // copy final image to swapchain
     mImageToSwapchainStage.RecordFrame(primaryCmdBuffer, renderInfo);
 
-    renderInfo.GetInFlightFrame()->PrepareSwapchainImageForPresent(primaryCmdBuffer, renderInfo.GetImageLayoutCache());
+    renderInfo.PrepareSwapchainImageForPresent(primaryCmdBuffer);
     primaryCmdBuffer.End();
     primaryCmdBuffer.Submit();
 }
@@ -301,7 +301,7 @@ void ImportanceSamplingRtProject::ApiOnResized(VkExtent2D size)
     mDenoisedImage.Resize(VkExtent3D{size.width, size.height, 1});
 }
 
-void lUpdateOutput(std::unordered_map<std::string_view, foray::core::ManagedImage*>& map, foray::stages::RenderStage& stage, const std::string_view name)
+void lUpdateOutput(std::map<std::string_view, foray::core::ManagedImage*>& map, foray::stages::RenderStage& stage, const std::string_view name)
 {
     map[name] = stage.GetColorAttachmentByName(name);
 }
