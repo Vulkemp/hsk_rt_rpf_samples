@@ -264,7 +264,6 @@ void ImportanceSamplingRtProject::ApiRender(foray::base::FrameRenderInfo& render
     mRaytraycingStage.RecordFrame(auxCmdBuffer, renderInfo);
 
     mDenoiser.BeforeDenoise(auxCmdBuffer, renderInfo);
-    auxCmdBuffer.End();
     auxCmdBuffer.Submit();
 
     mDenoiser.DispatchDenoise(timelineValueBeforeDenoise, timelineValueAfterDenoise);
@@ -282,7 +281,7 @@ void ImportanceSamplingRtProject::ApiRender(foray::base::FrameRenderInfo& render
     mImageToSwapchainStage.RecordFrame(primaryCmdBuffer, renderInfo);
 
     renderInfo.PrepareSwapchainImageForPresent(primaryCmdBuffer);
-    primaryCmdBuffer.End();
+
     primaryCmdBuffer.Submit();
 }
 
