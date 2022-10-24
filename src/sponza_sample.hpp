@@ -1,6 +1,6 @@
 #pragma once
 
-#include <foray_exception.hpp>
+#include <foray_api.hpp>
 
 #include <algorithm>
 #include <array>
@@ -16,19 +16,14 @@
 #include <set>
 #include <stdexcept>
 #include <vector>
+#include <stdint.h>
 
 #include "customrtstage.hpp"
-#include "stages/foray_gbuffer.hpp"
-#include "stages/foray_imagetoswapchain.hpp"
-#include "stages/foray_imguistage.hpp"
-#include "stages/foray_raytracingstage.hpp"
-#include <base/foray_defaultappbase.hpp>
 #include <foray_optix.hpp>
-#include <osi/foray_env.hpp>
-#include <scene/foray_scenegraph.hpp>
 #include <stages/foray_denoiserstage.hpp>
-#include <stdint.h>
 #include <util/foray_noisesource.hpp>
+
+using namespace foray::api;
 
 class ImportanceSamplingRtProject : public foray::base::DefaultAppBase
 {

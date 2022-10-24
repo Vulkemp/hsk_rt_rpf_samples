@@ -1,12 +1,7 @@
 #include "sponza_sample.hpp"
 #include <bench/foray_hostbenchmark.hpp>
-#include <core/foray_managedimage.hpp>
 #include <gltf/foray_modelconverter.hpp>
 #include <imgui/imgui.h>
-#include <scene/components/foray_camera.hpp>
-#include <scene/components/foray_freecameracontroller.hpp>
-#include <scene/globalcomponents/foray_cameramanager.hpp>
-#include <scene/globalcomponents/foray_tlasmanager.hpp>
 #include <util/foray_imageloader.hpp>
 
 void ImportanceSamplingRtProject::ApiBeforeInit()
@@ -70,13 +65,9 @@ void ImportanceSamplingRtProject::loadScene()
     {
         converter.LoadGltfModel(path);
     }
-    mScene->MakeComponent<foray::scene::TlasManager>(&mContext)->CreateOrUpdate();
 
-    auto cameraNode = mScene->MakeNode();
-
-    cameraNode->MakeComponent<foray::scene::Camera>()->InitDefault();
-    cameraNode->MakeComponent<foray::scene::FreeCameraController>();
-    mScene->GetComponent<foray::scene::CameraManager>()->RefreshCameraList();
+    mScene->UpdateTlasManager();
+    mScene->UseDefaultCamera();
 
     for(int32_t i = 0; i < scenePaths.size(); i++)
     {
