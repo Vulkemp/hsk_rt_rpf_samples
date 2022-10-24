@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.18)
 
 set(ENV{CMAKE_BUILD_PARALLEL_LEVEL} 12)
 
-add_compile_options("/MP")
-
 project("foray-intel-sponza")
 
 # Include Compiler Config (sets c++ 20 and compiler flags)
