@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.18)
 
+set(ENV{CMAKE_BUILD_PARALLEL_LEVEL} 12)
+
+add_compile_options("/MP")
+
 project("foray-intel-sponza")
 
 # Include Compiler Config (sets c++ 20 and compiler flags)
@@ -8,7 +12,6 @@ include("foray/cmakescripts/compilerconfig.cmake")
 # Run Locate SDL2 script
 set(SDL2_HINT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/foray/third_party")
 include("foray/cmakescripts/locatesdl2.cmake")
-
 
 # Add subdirectories
 add_subdirectory("foray")

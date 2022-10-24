@@ -68,7 +68,7 @@ void ImportanceSamplingRtProject::loadScene()
     foray::gltf::ModelConverter converter(mScene.get());
     for(const auto& path : scenePaths)
     {
-        converter.LoadGltfModel(foray::osi::MakeRelativePath(path));
+        converter.LoadGltfModel(path);
     }
     mScene->MakeComponent<foray::scene::TlasManager>(&mContext)->CreateOrUpdate();
 
