@@ -194,7 +194,7 @@ void ImportanceSamplingRtProject::ConfigureStages()
     foray::core::ManagedImage::CreateInfo ci("Denoised Image",
                                              VkImageUsageFlagBits::VK_IMAGE_USAGE_STORAGE_BIT | VkImageUsageFlagBits::VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
                                                  | VkImageUsageFlagBits::VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlagBits::VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-                                             VkFormat::VK_FORMAT_R16G16B16A16_SFLOAT, extent);
+                                             VkFormat::VK_FORMAT_R32G32B32A32_SFLOAT, extent);
 
     mDenoisedImage.Create(&mContext, ci);
 
