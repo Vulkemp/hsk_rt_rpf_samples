@@ -5,30 +5,23 @@
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 
 layout(rg32f, binding = 0) uniform image2D Input;
-layout(std430, binding = 1) buffer BUFFER_T { float Array[]; } Output;
+layout(std430, binding = 1) buffer BUFFER_T { float Output[]; };
 
 layout(push_constant) uniform SCREENSIZE_T{uint Width; uint Height;} ScreenSize;
 
 void main()
 {
-    ivec2 texelCoord = ivec2(gl_GlobalInvocationID.xy);
-
     if (gl_GlobalInvocationID.x >= ScreenSize.Width || gl_GlobalInvocationID.y >= ScreenSize.Height)
     {
         return;
     }
 
-    uint writeStartIndex = (texelCoord.y * ScreenSize.Width + texelCoord.x);
+    uint writeStartIndex = (gl_GlobalInvocationID.y * ScreenSize.Width + gl_GlobalInvocationID.x) * 2;
 
-    vec2 data = imageLoad(Input, texelCoord).xy;
+    vec2 data = imageLoad(Input, ivec2(gl_GlobalInvocationID.xy)).xy;
 
-    data *= vec2(ScreenSize.Width, ScreenSize.Height) * 1000;
+    data *= vec2(ScreenSize.Width, ScreenSize.Height) * -1; // Our Motion Vectors project current to previous, OptiX inverts this behaviour
 
-    if (gl_GlobalInvocationID.x == ScreenSize.Width / 2 && gl_GlobalInvocationID.y == ScreenSize.Height / 2)
-    {
-        debugPrintfEXT("motion in (%f, %f) out (%f, %f) old (%f %f)        ", imageLoad(Input, texelCoord).x, imageLoad(Input, texelCoord).y, data.x, data.y, Output.Array[writeStartIndex + 0], Output.Array[writeStartIndex + 1]);
-    }
-
-    Output.Array[writeStartIndex + 0] = float(data.x);
-    Output.Array[writeStartIndex + 1] = float(data.y);
+    Output[writeStartIndex + 0] = float(data.x);
+    Output[writeStartIndex + 1] = float(data.y);
 }
