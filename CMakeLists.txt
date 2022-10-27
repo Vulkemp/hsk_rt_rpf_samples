@@ -1,6 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
-
-set(ENV{CMAKE_BUILD_PARALLEL_LEVEL} 12)
+cmake_minimum_required(VERSION 3.20)
 
 project("foray-intel-sponza")
 
