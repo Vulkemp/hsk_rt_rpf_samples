@@ -1,29 +1,17 @@
 #include "customrtstage.hpp"
 #include <core/foray_shadermanager.hpp>
 
-void CustomRtStage::Init(foray::core::Context *context, foray::scene::Scene *scene, foray::core::ManagedImage *envmap, foray::core::ManagedImage *noiseSource)
+void CustomRtStage::Init(foray::core::Context *context, foray::scene::Scene *scene, foray::core::CombinedImageSampler *envmap, foray::core::CombinedImageSampler *noiseSource)
 {
     mContext = context;
     mScene = scene;
     if (!!envmap)
     {
-        mEnvMap.Create(context, envmap);
+        mEnvMap = envmap;
     }
     if (!!noiseSource)
     {
-        mNoiseSource.Create(context, noiseSource, false);
-        VkSamplerCreateInfo samplerCi{.sType = VkStructureType::VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
-                                      .magFilter = VkFilter::VK_FILTER_NEAREST,
-                                      .minFilter = VkFilter::VK_FILTER_NEAREST,
-                                      .addressModeU = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                                      .addressModeV = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                                      .addressModeW = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_REPEAT,
-                                      .anisotropyEnable = VK_FALSE,
-                                      .compareEnable = VK_FALSE,
-                                      .minLod = 0,
-                                      .maxLod = 0,
-                                      .unnormalizedCoordinates = VK_FALSE};
-        foray::AssertVkResult(vkCreateSampler(context->Device(), &samplerCi, nullptr, &mNoiseSource.Sampler));
+        mNoiseSource = noiseSource;
     }
     RaytracingStage::Init();
 }

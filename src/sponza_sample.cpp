@@ -4,19 +4,67 @@
 #include <imgui/imgui.h>
 #include <util/foray_imageloader.hpp>
 
+// #define USE_PRINTF
+
 void ImportanceSamplingRtProject::ApiBeforeInit()
 {
     mAuxiliaryCommandBufferCount = 1;
     mWindowSwapchain.GetWindow().DisplayMode(foray::osi::EDisplayMode::WindowedResizable);
 }
 
+// And this is the callback that the validator will call
+VkBool32 myDebugCallback(VkDebugReportFlagsEXT      flags,
+                         VkDebugReportObjectTypeEXT objectType,
+                         uint64_t                   object,
+                         size_t                     location,
+                         int32_t                    messageCode,
+                         const char*                pLayerPrefix,
+                         const char*                pMessage,
+                         void*                      pUserData)
+{
+    if(flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
+    {
+        printf("debugPrintfEXT: %s", pMessage);
+    }
+
+    return false;
+}
+
 void ImportanceSamplingRtProject::ApiInit()
 {
+#ifdef USE_PRINTF
+    VkDebugReportCallbackEXT debugCallbackHandle;
+
+    // Populate the VkDebugReportCallbackCreateInfoEXT
+    VkDebugReportCallbackCreateInfoEXT ci = {};
+    ci.sType                              = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+    ci.pfnCallback                        = myDebugCallback;
+    ci.flags                              = VK_DEBUG_REPORT_INFORMATION_BIT_EXT;
+    ci.pUserData                          = nullptr;
+
+    PFN_vkCreateDebugReportCallbackEXT pfn_vkCreateDebugReportCallbackEXT =
+        reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(vkGetDeviceProcAddr(mContext.Device(), "vkCreateDebugReportCallbackEXT"));
+
+    PFN_vkCreateDebugReportCallbackEXT CreateDebugReportCallback = VK_NULL_HANDLE;
+    CreateDebugReportCallback                                    = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(mContext.Instance(), "vkCreateDebugReportCallbackEXT");
+
+    // Create the callback handle
+    CreateDebugReportCallback(mContext.Instance(), &ci, nullptr, &debugCallbackHandle);
+#endif
     foray::logger()->set_level(spdlog::level::debug);
     LoadEnvironmentMap();
     GenerateNoiseSource();
     loadScene();
     ConfigureStages();
+}
+
+void ImportanceSamplingRtProject::ApiBeforeInstanceCreate(vkb::InstanceBuilder& instanceBuilder)
+{
+#ifdef USE_PRINTF
+    instanceBuilder.add_validation_feature_enable(VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT);
+    instanceBuilder.enable_extension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    instanceBuilder.enable_extension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+#endif
 }
 
 void ImportanceSamplingRtProject::ApiBeforeDeviceSelection(vkb::PhysicalDeviceSelector& pds)
@@ -28,6 +76,9 @@ void ImportanceSamplingRtProject::ApiBeforeDeviceSelection(vkb::PhysicalDeviceSe
 #else
     pds.add_required_extension(VK_KHR_EXTERNAL_SEMAPHORE_FD_EXTENSION_NAME);
     pds.add_required_extension(VK_KHR_EXTERNAL_MEMORY_FD_EXTENSION_NAME);
+#endif
+#ifdef USE_PRINTF
+    pds.add_required_extension(VK_KHR_SHADER_NON_SEMANTIC_INFO_EXTENSION_NAME);
 #endif
 }
 
@@ -43,6 +94,21 @@ void ImportanceSamplingRtProject::ApiOnEvent(const foray::osi::Event* event)
 {
     mScene->InvokeOnEvent(event);
 
+    const foray::osi::EventInputBinary* binary = dynamic_cast<const foray::osi::EventInputBinary*>(event);
+    if(!!binary)
+    {
+        if(binary->SourceInput->GetButtonId() == foray::osi::EButton::Keyboard_1 && binary->State)
+        {
+            mCurrentOutput = foray::stages::RaytracingStage::RaytracingRenderTargetName;
+            mOutputChanged = true;
+        }
+        if(binary->SourceInput->GetButtonId() == foray::osi::EButton::Keyboard_2 && binary->State)
+        {
+            mCurrentOutput = "Denoised Image";
+            mOutputChanged = true;
+        }
+    }
+
     // process events for imgui
     mImguiStage.ProcessSdlEvent(&(event->RawSdlEventData));
 }
@@ -54,8 +120,7 @@ void ImportanceSamplingRtProject::loadScene()
         // "../glTF-Sample-Models/2.0/BoomBoxWithAxes/glTF/BoomBoxWithAxes.gltf",
         // "../sponza_model/Main/NewSponza_Main_Blender_glTF.gltf",
         // "../sponza_model/PKG_B_Ivy/NewSponza_IvyGrowth_glTF.gltf",
-        "../glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf",
-        // "../glTF-Sample-Models/2.0/InterpolationTest/glTF/InterpolationTest.gltf",
+        "../glTF-Sample-Models/2.0/Sponza/glTF/Sponza.gltf", "../glTF-Sample-Models/2.0/InterpolationTest/glTF/InterpolationTest.gltf",
         // "../../foray-examples/data/gltf/minimal/minimal.gltf"
     });
 
@@ -104,8 +169,22 @@ void ImportanceSamplingRtProject::LoadEnvironmentMap()
     foray::core::ManagedImage::CreateInfo ci("Environment map", VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, hdrVkFormat,
                                              ext3D);
 
-    imageLoader.InitManagedImage(&mContext, &mSphericalEnvMap, ci);
+    imageLoader.InitManagedImage(&mContext, &mEnvMap, ci);
     imageLoader.Destroy();
+
+    VkSamplerCreateInfo samplerCi{.sType                   = VkStructureType::VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,
+                                  .magFilter               = VkFilter::VK_FILTER_LINEAR,
+                                  .minFilter               = VkFilter::VK_FILTER_LINEAR,
+                                  .addressModeU            = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                                  .addressModeV            = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                                  .addressModeW            = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_REPEAT,
+                                  .anisotropyEnable        = VK_FALSE,
+                                  .compareEnable           = VK_FALSE,
+                                  .minLod                  = 0,
+                                  .maxLod                  = 0,
+                                  .unnormalizedCoordinates = VK_FALSE};
+
+    mEnvMapSampled.Init(&mContext, &mEnvMap, samplerCi);
 }
 
 void ImportanceSamplingRtProject::GenerateNoiseSource()
@@ -125,7 +204,7 @@ void ImportanceSamplingRtProject::ApiDestroy()
     mGbufferStage.Destroy();
     mImguiStage.Destroy();
     mRaytraycingStage.Destroy();
-    mSphericalEnvMap.Destroy();
+    mEnvMap.Destroy();
     mDenoiser.Destroy();
     mDenoiseSemaphore.Destroy();
     mDenoisedImage.Destroy();
@@ -180,12 +259,12 @@ void ImportanceSamplingRtProject::PrepareImguiWindow()
 void ImportanceSamplingRtProject::ConfigureStages()
 {
     mGbufferStage.Init(&mContext, mScene.get());
-    auto albedoImage = mGbufferStage.GetColorAttachmentByName(foray::stages::GBufferStage::Albedo);
-    auto normalImage = mGbufferStage.GetColorAttachmentByName(foray::stages::GBufferStage::WorldspaceNormal);
-    auto motionImage = mGbufferStage.GetColorAttachmentByName(foray::stages::GBufferStage::MotionVector);
+    auto albedoImage = mGbufferStage.GetImageOutput(foray::stages::GBufferStage::AlbedoOutputName);
+    auto normalImage = mGbufferStage.GetImageOutput(foray::stages::GBufferStage::NormalOutputName);
+    auto motionImage = mGbufferStage.GetImageOutput(foray::stages::GBufferStage::MotionOutputName);
 
-    mRaytraycingStage.Init(&mContext, mScene.get(), &mSphericalEnvMap, &mNoiseSource.GetImage());
-    auto rtImage = mRaytraycingStage.GetColorAttachmentByName(foray::stages::RaytracingStage::RaytracingRenderTargetName);
+    mRaytraycingStage.Init(&mContext, mScene.get(), &mEnvMapSampled, &mNoiseSource.GetSampler());
+    auto rtImage = mRaytraycingStage.GetImageOutput(foray::stages::RaytracingStage::RaytracingRenderTargetName);
 
     mDenoiseSemaphore.Create(&mContext);
 
@@ -295,15 +374,15 @@ void ImportanceSamplingRtProject::ApiOnResized(VkExtent2D size)
 
 void lUpdateOutput(std::map<std::string_view, foray::core::ManagedImage*>& map, foray::stages::RenderStage& stage, const std::string_view name)
 {
-    map[name] = stage.GetColorAttachmentByName(name);
+    map[name] = stage.GetImageOutput(name);
 }
 
 void ImportanceSamplingRtProject::UpdateOutputs()
 {
     mOutputs.clear();
-    lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::Albedo);
-    lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::WorldspacePosition);
-    lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::WorldspaceNormal);
+    lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::AlbedoOutputName);
+    lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::PositionOutputName);
+    lUpdateOutput(mOutputs, mGbufferStage, foray::stages::GBufferStage::NormalOutputName);
     lUpdateOutput(mOutputs, mRaytraycingStage, foray::stages::RaytracingStage::RaytracingRenderTargetName);
     mOutputs.emplace("Denoised Image", &mDenoisedImage);
 

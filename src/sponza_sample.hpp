@@ -32,6 +32,7 @@ class ImportanceSamplingRtProject : public foray::base::DefaultAppBase
     ~ImportanceSamplingRtProject() = default;
 
   protected:
+    virtual void ApiBeforeInstanceCreate(vkb::InstanceBuilder& builder) override;
     virtual void ApiBeforeDeviceSelection(vkb::PhysicalDeviceSelector& pds) override;
     virtual void ApiBeforeDeviceBuilding(vkb::DeviceBuilder& deviceBuilder) override;
     virtual void ApiBeforeInit() override;
@@ -60,7 +61,8 @@ class ImportanceSamplingRtProject : public foray::base::DefaultAppBase
     /// @brief Generates a raytraced image
     CustomRtStage mRaytraycingStage;
 
-    foray::core::ManagedImage mSphericalEnvMap{};
+    foray::core::ManagedImage mEnvMap{};
+    foray::core::CombinedImageSampler mEnvMapSampled;
 
     foray::util::NoiseSource mNoiseSource;
 
